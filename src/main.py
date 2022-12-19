@@ -24,10 +24,9 @@ class Core:
 
     @staticmethod
     def get_topic(topic_name):
-
         queue_config = CoreConfig.default()
-        print(queue_config.provider)
         return topic.Topic(queue_config, topic_name)
+
 
     def __check_health(self):
         print('\x1b[32m ------------------------- \x1b[0m')
