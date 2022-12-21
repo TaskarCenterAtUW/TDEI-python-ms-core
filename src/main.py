@@ -1,11 +1,9 @@
 import logging
 import os
 from dotenv import load_dotenv
-
-from models.abstracts.iconfig import IConfig
-from core.logger.logger import Logger
 from core.queue import topic
 from models.config import CoreConfig
+from core.storage.providers.azure import azure_storage_client, azure_file_entity
 
 load_dotenv()
 
@@ -27,6 +25,16 @@ class Core:
         queue_config = CoreConfig.default()
         return topic.Topic(queue_config, topic_name)
 
+    @staticmethod
+    def get_storage_client():
+        return azure_storage_client.AzureStorageClient(azure_storage_client.azure_storage_config.AzureStorageConfig())
+
+    @staticmethod
+    def get_blob_client(name=None,
+                        mimetype=None,
+                        config=azure_storage_client.azure_storage_config.AzureStorageConfig()
+                        ):
+        return azure_file_entity.AzureFileEntity(name=name, mimetype=mimetype, config=config)
 
     def __check_health(self):
         print('\x1b[32m ------------------------- \x1b[0m')

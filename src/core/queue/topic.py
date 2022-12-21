@@ -28,7 +28,6 @@ class Topic:
                 for message in received_msgs:
                     queue_message = QueueMessage.data_from(str(message))
                     messages.append(queue_message)
-                    print(messages)
                     await receiver.complete_message(message)
 
         return messages
