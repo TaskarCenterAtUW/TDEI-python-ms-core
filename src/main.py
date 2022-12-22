@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from core.queue import topic
 from models.config import CoreConfig
 from core.storage.providers.azure import azure_storage_client, azure_file_entity
+from core.logger.logger import Logger
 
 load_dotenv()
 
@@ -19,6 +20,10 @@ class Core:
     @staticmethod
     def initialize():
         return Core().__check_health()
+
+    @staticmethod
+    def get_logger():
+        return Logger()
 
     @staticmethod
     def get_topic(topic_name):
