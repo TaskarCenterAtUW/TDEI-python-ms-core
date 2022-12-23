@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
 
 
 setup(
-    name="python-ms-core",
+    name="python_ms_core",
     version=version,
     author="Sujata Misra",
     author_email="sujatam@gaussiansolutions.com",

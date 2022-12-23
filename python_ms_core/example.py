@@ -1,13 +1,13 @@
 # Testing code
-import os
+
+import asyncio
 import uuid
 import datetime
+from io import BytesIO, StringIO
+from dotenv import load_dotenv
 from main import Core
 from core.queue.providers import azure_queue_config
-from dotenv import load_dotenv
-from io import BytesIO, StringIO
 from core.queue.models.queue_message import QueueMessage
-import asyncio
 
 load_dotenv()
 

@@ -1,4 +1,4 @@
-from provider_types.provider import Provider
+from python_ms_core.provider_types.provider import Provider
 
 
 class IConfig:

@@ -1,5 +1,5 @@
-from core.storage.abstract import file_entity
 from azure.storage.blob import BlobClient
+from ...abstract import file_entity
 
 
 class AzureFileEntity(file_entity.FileEntity):

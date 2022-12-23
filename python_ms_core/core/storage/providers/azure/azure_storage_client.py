@@ -1,6 +1,6 @@
 from azure.storage.blob import BlobServiceClient
-from core.storage.abstract import storage_client
-from core.storage.providers.azure import azure_storage_config, azure_file_entity, azure_storage_container
+from ...abstract import storage_client
+from . import azure_storage_config, azure_file_entity, azure_storage_container
 
 
 class AzureStorageClient(storage_client.StorageClient):

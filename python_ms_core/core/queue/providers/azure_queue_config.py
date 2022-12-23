@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from models.config import CoreConfig
+from ..models.config import CoreConfig
 
 load_dotenv()
 

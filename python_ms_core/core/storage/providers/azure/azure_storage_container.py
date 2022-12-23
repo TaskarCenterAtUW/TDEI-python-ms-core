@@ -1,6 +1,6 @@
-from core.storage.abstract import storage_container
 from azure.storage.blob import ContainerClient
-from core.storage.providers.azure import azure_file_entity
+from ...abstract import storage_container
+from ...providers.azure import azure_file_entity
 
 
 class AzureStorageContainer(storage_container.StorageContainer):
