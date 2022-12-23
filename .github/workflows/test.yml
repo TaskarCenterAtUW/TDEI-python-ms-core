@@ -19,12 +19,15 @@ jobs:
         with:
           fetch-depth: 0
       - name: Installing python
-        run: python3 -m pip install --upgrade build && python3 -m build
+        run: actions/setup-python@v4
+        with:
+          python-version: '3.10'
       - name: Generating version file
-        run: pwd
-
-#      - name: Publish package
-#        uses: pypa/gh-action-pypi-publish@release/v1
-#        with:
-#          password: ${{ TEST_PYPI_API_TOKEN }}
-#          repository_url: https://test.pypi.org/legacy/
+        run: python freeze.py
+      - name: Setup python wheel
+        run: python setup.py bdist_wheel
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
