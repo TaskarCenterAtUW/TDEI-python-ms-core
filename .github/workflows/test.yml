@@ -1,9 +1,5 @@
 name: Publish to Test.PyPI.org
 
-env:
-  TEST_PYPI_API_TOKEN: pypi-AgENdGVzdC5weXBpLm9yZwIkOWFkYzA1NWMtYmE3NC00N2UwLTlmYTctYjhjN2JmMTk5ZmY4AAIWWzEsWyJweXRob24tbXMtY29yZSJdXQACLFsyLFsiN2VkYjhjNmYtNmFmNC00ZDJlLThkMjQtYjY5NjA0YWVkZGVjIl1dAAAGII9pKBoNEcb37cEqKCRcRrWxu2nCVoL8w5WMbLpCnk1u
-
-
 on:
   push:
     branches:
@@ -28,10 +24,10 @@ jobs:
         run: python freeze_version.py
       - name: Setup python wheel
         run: pip install wheel
-      - name: Builing Package
+      - name: Building Package
         run: python setup.py bdist_wheel
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: $TEST_PYPI_API_TOKEN
+          password: pypi-AgENdGVzdC5weXBpLm9yZwIkMTBhNTJmNDctM2MzYy00MjA4LThhODEtMjkxODMzN2JlYmU0AAIWWzEsWyJweXRob24tbXMtY29yZSJdXQACLFsyLFsiN2VkYjhjNmYtNmFmNC00ZDJlLThkMjQtYjY5NjA0YWVkZGVjIl1dAAAGIDDY7BAgBsaR0c-SQC14K-J_yWUT-AA6vQCx5pe4OfJq
           repository_url: https://test.pypi.org/legacy/
