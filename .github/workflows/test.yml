@@ -27,6 +27,8 @@ jobs:
       - name: Generating version file
         run: python freeze_version.py
       - name: Setup python wheel
+        run: pip install wheel
+      - name: Builing Package
         run: python setup.py bdist_wheel
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
