@@ -5,9 +5,9 @@ import uuid
 import datetime
 from io import BytesIO, StringIO
 from dotenv import load_dotenv
-from main import Core
-from core.queue.providers import azure_queue_config
-from core.queue.models.queue_message import QueueMessage
+from .python_ms_core import Core
+from .python_ms_core.core.queue.providers import azure_queue_config
+from .python_ms_core.core.queue.models.queue_message import QueueMessage
 
 load_dotenv()
 

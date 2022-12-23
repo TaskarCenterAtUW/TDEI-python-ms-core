@@ -1,10 +1,11 @@
 import logging
 import os
 from dotenv import load_dotenv
-from models.config import CoreConfig
-from core.logger.logger import Logger
-from core.queue import topic
-from core.storage.providers.azure import azure_storage_client, azure_file_entity
+from .models.config import CoreConfig
+from .core.logger.logger import Logger
+from .core.queue import topic
+from .core.storage.providers.azure import azure_storage_client, azure_file_entity
+from .core.storage.providers.azure.azure_storage_config import AzureStorageConfig
 
 load_dotenv()
 
@@ -32,12 +33,12 @@ class Core:
 
     @staticmethod
     def get_storage_client():
-        return azure_storage_client.AzureStorageClient(azure_storage_client.azure_storage_config.AzureStorageConfig())
+        return azure_storage_client.AzureStorageClient(AzureStorageConfig())
 
     @staticmethod
     def get_blob_client(name=None,
                         mimetype=None,
-                        config=azure_storage_client.azure_storage_config.AzureStorageConfig()
+                        config=AzureStorageConfig()
                         ):
         return azure_file_entity.AzureFileEntity(name=name, mimetype=mimetype, config=config)
 
