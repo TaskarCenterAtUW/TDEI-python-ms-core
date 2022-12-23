@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: '3.10'
       - name: Generating version file
-        run: python freeze.py
+        run: ls -l
       - name: Setup python wheel
         run: python setup.py bdist_wheel
       - name: Publish package
