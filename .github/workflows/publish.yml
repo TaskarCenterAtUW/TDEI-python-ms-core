@@ -1,23 +1,15 @@
-name: Publish to Test.PyPI.org
-
+name: Publish to PyPI.org
 on:
-  push:
-    branches:
-      - develop
-      -
+  release:
+    types: [ published ]
 jobs:
-  publish:
-    name: Publish distribution 📦 to Test PyPI
+  pypi:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Installing python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
       - name: Install Requirements
         run: pip install -r requirements.txt
       - name: Generating version file
@@ -29,5 +21,11 @@ jobs:
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          skip_existing: true
           password: pypi-AgENdGVzdC5weXBpLm9yZwIkMTBhNTJmNDctM2MzYy00MjA4LThhODEtMjkxODMzN2JlYmU0AAIWWzEsWyJweXRob24tbXMtY29yZSJdXQACLFsyLFsiN2VkYjhjNmYtNmFmNC00ZDJlLThkMjQtYjY5NjA0YWVkZGVjIl1dAAAGIDDY7BAgBsaR0c-SQC14K-J_yWUT-AA6vQCx5pe4OfJq
           repository_url: https://test.pypi.org/legacy/
+#      - run: python3 -m pip install --upgrade build && python3 -m build
+#      - name: Publish package
+#        uses: pypa/gh-action-pypi-publish@release/v1
+#        with:
+#          password: ${{ secrets.PYPI_API_TOKEN }}
