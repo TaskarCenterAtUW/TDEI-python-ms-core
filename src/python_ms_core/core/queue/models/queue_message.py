@@ -68,6 +68,8 @@ class QueueMessage(Validations):
 
     def validate_data(self, value, **_):
         name = _.get('field').name
+        if isinstance(value, type):
+            value = {}
         if isinstance(value, dict) or isinstance(value, list) or isinstance(value, type):
             return value
         raise ValueError(f'{name} must be an object.')

@@ -20,18 +20,18 @@ class LocalLogger(LoggerAbstract):
         self.queue_client.send_local(message)
 
     def info(self, message: str):
-        message = QueueMessage.data_from({
+        msg = QueueMessage.data_from({
             'message': message,
             'messageType': 'info',
         })
-        self.queue_client.send_local(message)
+        self.queue_client.send_local(msg)
 
     def debug(self, message: str):
-        message = QueueMessage.data_from({
+        msg = QueueMessage.data_from({
             'message': message,
             'messageType': 'debug',
         })
-        self.queue_client.send_local(message)
+        self.queue_client.send_local(msg)
 
     def record_metric(self, name: str, value: str):
         message = QueueMessage.data_from({
