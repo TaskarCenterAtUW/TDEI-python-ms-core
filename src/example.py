@@ -1,13 +1,12 @@
 # Testing code
 
-import asyncio
 import uuid
 import datetime
 from io import BytesIO, StringIO
 from dotenv import load_dotenv
-from .python_ms_core import Core
-from .python_ms_core.core.queue.providers import azure_queue_config
-from .python_ms_core.core.queue.models.queue_message import QueueMessage
+from python_ms_core import Core
+from python_ms_core.core.queue.providers import azure_queue_config
+from python_ms_core.core.queue.models.queue_message import QueueMessage
 
 load_dotenv()
 
@@ -30,14 +29,10 @@ queue_message = QueueMessage.data_from({
     'data': {'a': 1}
 })
 
-event_loop_publish = asyncio.get_event_loop()
-event_loop_publish.run_until_complete(topicObject1.publish(data=queue_message))
-# event_loop_publish.run_forever()
+topicObject1.publish(data=queue_message)
 
-event_loop_subscribe = asyncio.get_event_loop()
-msg = event_loop_subscribe.run_until_complete(topicObject1.subscribe(subscription=subscription))
-print(msg)
-# event_loop_subscribe.run_forever()
+msg = topicObject1.subscribe(subscription=subscription)
+print(f'Received message: {msg}')
 
 azure_client = Core.get_storage_client()
 
@@ -58,7 +53,11 @@ suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 filename = '_'.join([basename, suffix])
 test_file = container.create_file(f'{filename}.txt', 'text/plain')
 print('Start uploading...')
-a = test_file.upload(file_like_io.read())
-print(a)
-print('Uploaded')
+test_file.upload(file_like_io.read())
+print('Uploaded Successfully')
 
+logger = Core.get_logger()
+logger.record_metric(name='test', value='test')
+
+logger = Core.get_logger(provider='Local')
+logger.record_metric(name='test', value='test')

@@ -1,11 +1,7 @@
-import os
 from dotenv import load_dotenv
 
-from azure.servicebus.aio import ServiceBusClient, ServiceBusSender
-from azure.servicebus import ServiceBusMessage
+from azure.servicebus import ServiceBusClient, ServiceBusMessage
 from .azure_queue_config import AzureQueueConfig
-
-load_dotenv()
 
 
 class AzureServiceBusTopic:

@@ -5,8 +5,11 @@ from .provider import Provider
 load_dotenv()
 
 
-class AzureQueueConfig:
+class AzureLoggerConfig():
     provider = Provider()
+    logger_queue_name = None
 
-    def __init__(self):
-        self.logger_queue_name = os.environ.get('LOGGERQUEUE', 'tdei-ms-log')
+    def __init__(self, provider_config=None):
+        self.provider = provider_config or self.provider
+        self.connection_string = os.environ.get('LOGGERQUEUE', '')
+        self.logger_queue_name = os.environ.get('LOGGER_QUEUE_NAME', 'tdei-ms-log')

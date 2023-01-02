@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from .models.config import CoreConfig
 from .core.logger.logger import Logger
+from .core.logger.local_logger import LocalLogger
 from .core.queue import topic
 from .core.storage.providers.azure import azure_storage_client, azure_file_entity
 from .core.storage.providers.azure.azure_storage_config import AzureStorageConfig
@@ -23,8 +24,14 @@ class Core:
         return Core().__check_health()
 
     @staticmethod
-    def get_logger():
-        return Logger()
+    def get_logger(provider=None):
+        if provider:
+            return LocalLogger(provider_config=provider)
+        else:
+            return Logger()
+
+    # @staticmethod
+    # def get_custom_queue():
 
     @staticmethod
     def get_topic(topic_name):
