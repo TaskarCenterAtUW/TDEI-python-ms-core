@@ -19,8 +19,8 @@ some_other_sub = 'usdufs'
 
 topic_config = azure_queue_config.AzureQueueConfig()
 
-topicObject1 = Core.get_topic(topic)
-topicObject2 = Core.get_topic('tipic')
+topicObject1 = Core.get_topic(topic_name=topic)
+topicObject2 = Core.get_topic(topic_name='tipic')
 
 print()
 
@@ -56,7 +56,7 @@ print('Start uploading...')
 test_file.upload(file_like_io.read())
 print('Uploaded Successfully')
 
-logger = Core.get_logger()
+logger = Core.get_logger(queue_name='tdei-ms-log')
 logger.record_metric(name='test', value='test')
 
 logger = Core.get_logger(provider='Local')

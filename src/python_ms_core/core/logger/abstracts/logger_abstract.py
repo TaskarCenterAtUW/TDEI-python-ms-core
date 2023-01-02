@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class LoggerAbstract(ABC):
     @abstractmethod
-    def __init__(self, provider_config=None): pass
+    def __init__(self, provider_config=None, queue_name=None): pass
 
     @abstractmethod
     def add_request(self, request_data):

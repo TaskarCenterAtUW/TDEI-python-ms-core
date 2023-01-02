@@ -24,19 +24,23 @@ class Core:
         return Core().__check_health()
 
     @staticmethod
-    def get_logger(provider=None):
+    def get_logger(provider=None, queue_name=None):
         if provider:
-            return LocalLogger(provider_config=provider)
+            return LocalLogger(provider_config=provider, queue_name=queue_name)
         else:
-            return Logger()
+            return Logger(queue_name=queue_name)
 
     # @staticmethod
     # def get_custom_queue():
 
     @staticmethod
-    def get_topic(topic_name):
-        queue_config = CoreConfig.default()
-        return topic.Topic(queue_config, topic_name)
+    def get_topic(topic_name=None):
+        if topic_name is None:
+            queue_config = CoreConfig.default()
+            return topic.Topic(queue_config, topic_name)
+        else:
+            logging.error(f'Unimplemented initialization for core, Topic name required!')
+            return
 
     @staticmethod
     def get_storage_client():
