@@ -35,7 +35,7 @@ class Core:
 
     @staticmethod
     def get_topic(topic_name=None):
-        if topic_name is None:
+        if topic_name is not None:
             queue_config = CoreConfig.default()
             return topic.Topic(queue_config, topic_name)
         else:

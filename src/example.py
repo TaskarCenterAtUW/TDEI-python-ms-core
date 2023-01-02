@@ -36,7 +36,7 @@ print(f'Received message: {msg}')
 
 azure_client = Core.get_storage_client()
 
-container = azure_client.get_container('tdei-storage-test')
+container = azure_client.get_container(container_name='tdei-storage-test')
 
 list_of_files = container.list_files()
 for single in list_of_files:
