@@ -33,6 +33,20 @@ class LocalLogger(LoggerAbstract):
         })
         self.queue_client.send_local(msg)
 
+    def warn(self, message: str):
+        msg = QueueMessage.data_from({
+            'message': message,
+            'messageType': 'warn',
+        })
+        self.queue_client.send_local(msg)
+
+    def error(self, message: str):
+        msg = QueueMessage.data_from({
+            'message': message,
+            'messageType': 'error',
+        })
+        self.queue_client.send_local(msg)
+
     def record_metric(self, name: str, value: str):
         message = QueueMessage.data_from({
             'message': 'metric',

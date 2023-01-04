@@ -17,5 +17,13 @@ class LoggerAbstract(ABC):
     def debug(self, message: str):
         pass
 
+    @abstractmethod
+    def warn(self, message: str):
+        pass
+
+    @abstractmethod
+    def error(self, message: str):
+        pass
+
     def record_metric(self, name: str, value: str):
         pass

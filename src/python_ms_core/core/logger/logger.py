@@ -34,6 +34,20 @@ class Logger(LoggerAbstract):
         })
         self.queue_client.send(msg)
 
+    def warn(self, message: str):
+        msg = QueueMessage.data_from({
+            'message': message,
+            'messageType': 'warn',
+        })
+        self.queue_client.send(msg)
+
+    def error(self, message: str):
+        msg = QueueMessage.data_from({
+            'message': message,
+            'messageType': 'error',
+        })
+        self.queue_client.send(msg)
+
     def record_metric(self, name: str, value: str):
         message = QueueMessage.data_from({
             'message': 'metric',
