@@ -1,16 +1,16 @@
 import json
 import logging
-from .providers import azure_service_bus_topic
+from .providers.azure_service_bus_topic import AzureServiceBusTopic
 from ..resource_errors import ExceptionHandler
 from .models.queue_message import QueueMessage
 
 
 class Topic:
-    def __init__(self, config, topic_name):
+    def __init__(self, config=None, topic_name=None):
         self.topic = topic_name
         if config.provider == 'Azure':
             try:
-                self.azure = azure_service_bus_topic.AzureServiceBusTopic(topic_name)
+                self.azure = AzureServiceBusTopic(topic_name=topic_name)
             except Exception as e:
                 logging.error(f'Failed to initialize Topic with error: {e}')
         else:
@@ -40,7 +40,7 @@ class Topic:
     def publish(self, data=None):
         message = QueueMessage.to_dict(data)
         with self.azure.client:
-            sender = self.azure.client.get_topic_sender(topic_name=self.azure.topic, )
+            sender = self.azure.client.get_topic_sender(topic_name=self.azure.topic)
             with sender:
                 sender.send_messages(self.azure.sender(json.dumps(message)))
                 print('Message Sent')

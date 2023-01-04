@@ -1,5 +1,5 @@
 import logging
-from .providers.azure_logger_config import AzureLoggerConfig
+from ..queue.providers.azure_service_bus_topic import AzureServiceBusTopic
 from ..queue.models.queue_message import QueueMessage
 from ..queue.queue import Queue
 from .abstracts.logger_abstract import LoggerAbstract
@@ -7,14 +7,10 @@ from .abstracts.logger_abstract import LoggerAbstract
 
 class Logger(LoggerAbstract):
 
-    def __init__(self, queue_name=None):
-        super().__init__(queue_name=queue_name)
-        self.config = AzureLoggerConfig()
-        if queue_name is None:
-            logging.error(f'Unimplemented initialization for core {self.config.provider}, Queue name is required!')
-            return
-        else:
-            self.queue_client = Queue(self.config, queue_name=queue_name)
+    def __init__(self):
+        super().__init__()
+        self.config = AzureServiceBusTopic()
+        self.queue_client = Queue(self.config)
 
     def add_request(self, request_data):
         message = QueueMessage.data_from({

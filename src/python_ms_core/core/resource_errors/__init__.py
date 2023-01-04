@@ -11,22 +11,49 @@ class ExceptionHandler:
         def wrapper(*args, **kwargs):
             try:
                 return fn(*args, **kwargs)
-            except azure.servicebus.exceptions as ex:
-                raise BadRequestError('Server could not understand your request. Please try again later.')
-            except azure.core.exceptions.ClientAuthenticationError as ex:
-                raise UnauthorizedError('Unable to authenticate.')
-            except azure.core.exceptions.ResourceExistsError as ex:
-                raise NotFoundError('Resource not found')
-            except azure.core.exceptions.TooManyRedirectsError as ex:
-                raise TooManyRequestError('To many attempts, please try again later')
-            except azure.core.exceptions.ServiceRequestError as ex:
-                raise UnProcessableError('Request is not processable. Please try again later.')
-            except azure.core.exceptions.OperationTimeoutError as ex:
-                raise TimeOutError('Request time out. Please try again later.')
+            except azure.servicebus.exceptions.AutoLockRenewFailed as ex:
+                raise BadRequestError(f'AutoLock Renew Failed Error: {ex}')
+            except azure.servicebus.exceptions.AutoLockRenewTimeout as ex:
+                raise TimeOutError(f'AutoLock Renew Timeout Error: {ex}')
+            except azure.servicebus.exceptions.MessageAlreadySettled as ex:
+                raise BadRequestError(f'Message Already Settled Error: {ex}')
+            except azure.servicebus.exceptions.MessageLockLostError as ex:
+                raise BadRequestError(f'Message Lock Lost Error: {ex}')
+            except azure.servicebus.exceptions.MessageNotFoundError as ex:
+                raise NotFoundError(f'Message Not Found Error: {ex}')
+            except azure.servicebus.exceptions.MessageSizeExceededError as ex:
+                raise BadRequestError(f'Message Size Exceeded Error: {ex}')
+            except azure.servicebus.exceptions.MessagingEntityAlreadyExistsError as ex:
+                raise ConflictError(f'Message Entity Already Exists Error: {ex}')
+            except azure.servicebus.exceptions.MessagingEntityDisabledError as ex:
+                raise UnProcessableError(f'Message Entity Disabled Error: {ex}')
+            except azure.servicebus.exceptions.MessagingEntityNotFoundError as ex:
+                raise NotFoundError(f'Message Entity Not Found Error: {ex}')
+            except azure.servicebus.exceptions.OperationTimeoutError as ex:
+                raise TimeOutError(f'Operation Timeout Error: {ex}')
+            except azure.servicebus.exceptions.ServiceBusAuthenticationError as ex:
+                raise UnauthorizedError(f'Unable to Authenticate Service Bus Error: {ex}')
+            except azure.servicebus.exceptions.ServiceBusAuthorizationError as ex:
+                raise ForbiddenError(f'Unable to Authorization Service Bus Error: {ex}')
+            except azure.servicebus.exceptions.ServiceBusCommunicationError as ex:
+                raise UnProcessableError(f'Service Bus Communication Error: {ex}')
+            except azure.servicebus.exceptions.ServiceBusConnectionError as ex:
+                raise ForbiddenError(f'Service Bus Connection Error: {ex}')
+            except azure.servicebus.exceptions.ServiceBusError as ex:
+                raise ForbiddenError(f'Service Bus Error: {ex}')
+            except azure.servicebus.exceptions.ServiceBusQuotaExceededError as ex:
+                raise UnProcessableError(f'Service Bus Quota Exceeded Error: {ex}')
+            except azure.servicebus.exceptions.ServiceBusServerBusyError as ex:
+                raise UnProcessableError(f'Service Bus Server Busy Error: {ex}')
+            except azure.servicebus.exceptions.SessionCannotBeLockedError as ex:
+                raise UnProcessableError(f'Session Cannot Be Locked Error: {ex}')
+            except azure.servicebus.exceptions.SessionLockLostError as ex:
+                raise UnProcessableError(f'Session Lock Lost Error: {ex}')
             except ValueError as ex:
                 raise UnProcessableError(str(ex))
+            except TypeError as ex:
+                raise ServiceError(str(ex))
             except Exception as ex:
-                print(ex)
                 raise ServiceError(str(ex))
 
         return wrapper

@@ -6,10 +6,10 @@ from .abstracts.logger_abstract import LoggerAbstract
 
 class LocalLogger(LoggerAbstract):
 
-    def __init__(self, provider_config=None, queue_name=None):
-        super().__init__(provider_config=provider_config, queue_name=queue_name)
+    def __init__(self, provider_config=None):
+        super().__init__(provider_config=provider_config)
         self.config = AzureLoggerConfig(provider_config=provider_config)
-        self.queue_client = Queue(self.config, queue_name=None)
+        self.queue_client = Queue(self.config)
 
     def add_request(self, request_data):
         message = QueueMessage.data_from({

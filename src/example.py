@@ -56,7 +56,7 @@ print('Start uploading...')
 test_file.upload(file_like_io.read())
 print('Uploaded Successfully')
 
-logger = Core.get_logger(queue_name='tdei-ms-log')
+logger = Core.get_logger()
 logger.record_metric(name='test', value='test')
 
 logger = Core.get_logger(provider='Local')
