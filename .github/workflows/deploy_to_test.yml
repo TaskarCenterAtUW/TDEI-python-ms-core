@@ -8,7 +8,7 @@ on:
 jobs:
   publish:
     environment:
-      name: Test
+      name: Development
     name: Publish distribution 📦 to Test PyPI
     runs-on: ubuntu-latest
     steps:
@@ -36,5 +36,5 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip_existing: true
-          password: pypi-AgENdGVzdC5weXBpLm9yZwIkMTBhNTJmNDctM2MzYy00MjA4LThhODEtMjkxODMzN2JlYmU0AAIWWzEsWyJweXRob24tbXMtY29yZSJdXQACLFsyLFsiN2VkYjhjNmYtNmFmNC00ZDJlLThkMjQtYjY5NjA0YWVkZGVjIl1dAAAGIDDY7BAgBsaR0c-SQC14K-J_yWUT-AA6vQCx5pe4OfJq
+          password: ${{ secrets.PYPI_API_TOKEN }}
           repository_url: https://test.pypi.org/legacy/

@@ -19,6 +19,11 @@ setup(
     author_email='sujatam@gaussiansolutions.com',
     description='Python Boilerplate with cloud interaction',
     long_description=long_description,
+    project_urls={
+        'Documentation': 'https://github.com/TaskarCenterAtUW/TDEI-Python-ms-core/blob/main/README.md',
+        'GitHub': 'https://github.com/TaskarCenterAtUW/TDEI-Python-ms-core',
+        'Changelog': 'https://github.com/TaskarCenterAtUW/TDEI-Python-ms-core/blob/develop/CHANGELOG.md'
+    },
     long_description_content_type='text/markdown',
     url='https://github.com/TaskarCenterAtUW/TDEI-Python-ms-core',
     install_requires=install_requires,
