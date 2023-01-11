@@ -48,10 +48,15 @@ class QueueMessage(Validations):
             data = json.loads(self)
 
         kwargs = {}
-        for key, value in data.items():
-            if value:
-                kwargs[key] = value
-        return QueueMessage(**kwargs)
+        if data:
+            for key, value in data.items():
+                if value:
+                    kwargs[key] = value
+            try:
+                return QueueMessage(**kwargs)
+            except Exception as e:
+                error = str(e).replace('QueueMessage', 'Invalid parameter,')
+                raise TypeError(error)
 
     def to_dict(self):
         if isinstance(self, QueueMessage):

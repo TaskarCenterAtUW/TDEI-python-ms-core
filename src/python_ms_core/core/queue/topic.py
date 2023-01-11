@@ -20,18 +20,12 @@ class Topic:
     def subscribe(self, subscription=None):
         if subscription is not None:
             messages = []
-            with self.azure.client:
-                receiver = self.azure.client.get_subscription_receiver(
-                    topic_name=self.azure.topic,
-                    subscription_name=subscription,
-                )
-                with receiver:
-                    received_msgs = receiver.receive_messages(max_message_count=10, max_wait_time=5)
-                    for message in received_msgs:
-                        queue_message = QueueMessage.data_from(str(message))
-                        messages.append(queue_message)
-                        receiver.complete_message(message)
-
+            with self.azure.client.get_subscription_receiver(topic_name=self.azure.topic, subscription_name=subscription) as receiver:
+                received_msgs = receiver.receive_messages(max_message_count=10, max_wait_time=5)
+                for message in received_msgs:
+                    queue_message = QueueMessage.data_from(str(message))
+                    messages.append(queue_message)
+                    receiver.complete_message(message)
             return messages
         else:
             logging.error(f'Unimplemented initialization for core {self.config.provider}, Subscription name is required!')

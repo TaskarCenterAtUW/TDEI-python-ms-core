@@ -50,10 +50,10 @@ class ExceptionHandler:
             except azure.servicebus.exceptions.SessionLockLostError as ex:
                 raise UnProcessableError(f'Session Lock Lost Error: {ex}')
             except ValueError as ex:
-                raise UnProcessableError(str(ex))
+                raise UnProcessableError(f'UnProcessable Error: {ex}')
             except TypeError as ex:
-                raise ServiceError(str(ex))
+                raise ServiceError(f'Service Error: {ex}')
             except Exception as ex:
-                raise ServiceError(str(ex))
+                raise ServiceError(f'Exception: {ex}')
 
         return wrapper
