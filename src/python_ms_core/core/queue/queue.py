@@ -29,11 +29,8 @@ class Queue:
             message = QueueMessage.to_dict(data)
             with self.azure.client:
                 sender = self.azure.client.get_queue_sender(queue_name=self.azure.queue_name)
-                try:
-                    with sender:
-                        sender.send_messages(self.azure.sender(json.dumps(message)))
-                except Exception:
-                    print(message)
+                with sender:
+                    sender.send_messages(self.azure.sender(json.dumps(message)))
         self.queue = list()
 
     def send_local(self, data=None):

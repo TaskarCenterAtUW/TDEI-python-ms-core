@@ -6,8 +6,10 @@ from .models.queue_message import QueueMessage
 
 
 class Topic:
-    def __init__(self, config=None, topic_name=None):
+    def __init__(self, config=None, topic_name=None, callback=None):
         self.topic = topic_name
+        self._callback = callback
+        self._messages = []
         if config.provider == 'Azure':
             try:
                 self.azure = AzureServiceBusTopic(topic_name=topic_name)
@@ -19,16 +21,22 @@ class Topic:
     @ExceptionHandler.decorated
     def subscribe(self, subscription=None):
         if subscription is not None:
-            messages = []
-            with self.azure.client.get_subscription_receiver(topic_name=self.azure.topic, subscription_name=subscription) as receiver:
-                received_msgs = receiver.receive_messages(max_message_count=10, max_wait_time=5)
-                for message in received_msgs:
-                    queue_message = QueueMessage.data_from(str(message))
-                    messages.append(queue_message)
-                    receiver.complete_message(message)
-            return messages
+            with self.azure.client:
+                topic_receiver = self.azure.client.get_subscription_receiver(self.azure.topic, subscription_name=subscription)
+                with topic_receiver:
+                    for message in topic_receiver:
+                        queue_message = QueueMessage.data_from(str(message))
+                        self._messages = queue_message
+                        if self._callback and callable(self._callback):
+                            self._callback(self)
+                        topic_receiver.complete_message(message)
+
         else:
-            logging.error(f'Unimplemented initialization for core {self.config.provider}, Subscription name is required!')
+            logging.error(
+                f'Unimplemented initialization for core {self.config.provider}, Subscription name is required!')
+
+    def get_messages(self):
+        return self._messages
 
     @ExceptionHandler.decorated
     def publish(self, data=None):
