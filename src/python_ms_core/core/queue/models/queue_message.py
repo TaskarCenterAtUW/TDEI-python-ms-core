@@ -1,8 +1,8 @@
 import json
 from datetime import datetime
 from typing import Union, List
-from dataclasses import dataclass, asdict
-from typing import Optional
+from dataclasses import dataclass
+from ...resource_errors import ExceptionHandler
 
 
 class Validations:
@@ -42,6 +42,7 @@ class QueueMessage(Validations):
     def get_items(self):
         return self.queue
 
+    @ExceptionHandler.decorated
     def data_from(self):
         data = self
         if isinstance(data, str):
@@ -56,7 +57,8 @@ class QueueMessage(Validations):
                 return QueueMessage(**kwargs)
             except Exception as e:
                 error = str(e).replace('QueueMessage', 'Invalid parameter,')
-                raise TypeError(error)
+                error = error.replace('__init__()', 'QueueMessage')
+                raise TypeError(f'{error} \nStatus code: 400')
 
     def to_dict(self):
         if isinstance(self, QueueMessage):

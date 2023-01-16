@@ -16,5 +16,5 @@ class AzureServiceBusTopic:
         self.logger_queue_name = queue_name or os.environ.get('LOGGERQUEUE', 'tdei-ms-log')
         self.provider = config.provider
         self.connection_string = config.connection_string
-        self.client = ServiceBusClient.from_connection_string(conn_str=self.connection_string)
+        self.client = ServiceBusClient.from_connection_string(conn_str=self.connection_string, retry_total=0)
         self.sender = ServiceBusMessage

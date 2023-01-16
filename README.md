@@ -100,12 +100,17 @@ The configuration required by Queue and Topic is similar and will be handled via
 
 ### Accessing a specific topic
 
-Topic can be accessed by the core method `get_topic`. This method takes one parameter 
+Topic can be accessed by the core method `get_topic`. This method takes two parameters
 1. topic name (required)
+2. callback function where messages will be received
 
 ```python
 from python_ms_core import Core
-topic = Core.get_topic(topic_name='topicName')
+
+def callback(instance):
+    print(instance.get_messages())
+
+topic = Core.get_topic(topic_name='topicName', callback=callback)
 
 ```
 

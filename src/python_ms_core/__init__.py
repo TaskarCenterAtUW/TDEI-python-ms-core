@@ -34,9 +34,9 @@ class Core:
     # def get_custom_queue():
 
     @staticmethod
-    def get_topic(topic_name=None):
+    def get_topic(topic_name=None, callback=None):
         if topic_name is not None:
-            return Topic(config=CoreConfig.default(), topic_name=topic_name)
+            return Topic(config=CoreConfig.default(), topic_name=topic_name, callback=callback)
         else:
             logging.error(f'Unimplemented initialization for core, Topic name required!')
             return
