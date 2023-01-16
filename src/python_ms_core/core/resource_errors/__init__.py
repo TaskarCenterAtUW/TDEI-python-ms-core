@@ -1,4 +1,5 @@
 import azure
+import operator
 from functools import wraps
 from .errors import BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError, ConflictError, \
     UnProcessableError, TooManyRequestError, ServiceError, TimeOutError
@@ -8,15 +9,19 @@ def parse_error(base_message, error):
     message = error
     status_code = 0
     description = ''
-    complete_message = error.split('\n')
-    if len(complete_message) > 0:
+    if error.__class__ == TypeError:
+        error = str(error)
+
+    complete_message = error.split('\n') if operator.contains(str(error), '\n') else [error]
+
+    if complete_message and len(complete_message) > 0:
         message = complete_message[0]
-    if len(complete_message) > 1:
+    if complete_message and len(complete_message) > 1:
         status_code_string = complete_message[1]
         status_code_string = status_code_string.split('Status code: ')
         if len(status_code_string) == 2:
             status_code = int(status_code_string[1])
-    if len(complete_message) > 2:
+    if complete_message and len(complete_message) > 2:
         description_string = complete_message[2]
         description_string = description_string.split('Description: ')
         if len(description_string) == 2:
