@@ -1,5 +1,9 @@
 # Change log
 
+### 0.0.3
+- Removed blocking call from topic subscription
+- Added TODOs abf FIXMEs
+
 ### 0.0.2
 - Added filtered exception handling
 - Removed unused packages
