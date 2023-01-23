@@ -1,5 +1,8 @@
 # Change log
 
+### 0.0.5
+- Fixed Storage Blob stream
+
 ### 0.0.4
 - Fixed threading
 

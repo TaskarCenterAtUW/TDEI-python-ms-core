@@ -10,7 +10,7 @@ class AzureFileEntity(file_entity.FileEntity):
         self.blob_client = blob_client
 
     def get_stream(self):
-        return self.blob_client.download_blob(encoding='latin1').readall()
+        return self.blob_client.download_blob().readall()
 
     def get_body_text(self):
         return self.blob_client.download_blob().content_as_text()

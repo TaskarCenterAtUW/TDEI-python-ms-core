@@ -9,5 +9,5 @@ class StorageClient(ABC):
     def get_file(self, container_name: str, file_name: str): pass
 
     @abstractmethod
-    def get_file_from_url(self, full_url: str): pass
+    def get_file_from_url(self, container_name: str, full_url: str): pass
 
