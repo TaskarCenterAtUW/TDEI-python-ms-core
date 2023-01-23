@@ -11,6 +11,8 @@ class AzureStorageClient(storage_client.StorageClient):
         super().__init__()
         self._blob_service_client = BlobServiceClient.from_connection_string(config.connection_string)
 
+    # TODO: Added exception handler here
+    # TODO: Like @ExceptionHandler.decorated
     def get_container(self, container_name=None):
         if container_name is not None:
             client_container = self._blob_service_client.get_container_client(container_name)

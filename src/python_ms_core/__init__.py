@@ -11,20 +11,30 @@ from .core.storage.providers.azure.azure_storage_config import AzureStorageConfi
 load_dotenv()
 
 
+# FIXME: ADD parameter type should be present in each and every function
+# FIXME: ADD return type should be present in each and every function
 class Core:
 
-    def __init__(self):
-        self.config = CoreConfig.default()
+    # FIXME: Fix the configuration
+    def __init__(self, config=None):
 
+        if config is not None:
+            self.config = config
+        else:
+            self.config = CoreConfig.default()
+
+        # FIXME: remove local from here and accept only Azure for now
         if self.config.provider == 'Local':
             logging.error(f'Unimplemented initialization for core {self.config.provider}')
 
+    # FIXME: Change the function logic to take the configuration not from .env file if provided
     @staticmethod
     def initialize():
         return Core().__check_health()
 
     @staticmethod
     def get_logger(provider=None):
+        # TODO: Get logger fix local provider
         if provider:
             return LocalLogger(provider_config=provider)
         else:
@@ -34,23 +44,18 @@ class Core:
     # def get_custom_queue():
 
     @staticmethod
-    def get_topic(topic_name=None, callback=None):
+    def get_topic(topic_name: str):
         if topic_name is not None:
-            return Topic(config=CoreConfig.default(), topic_name=topic_name, callback=callback)
+            return Topic(config=CoreConfig.default(), topic_name=topic_name)
         else:
+            # FIXME: Fix the error message
             logging.error(f'Unimplemented initialization for core, Topic name required!')
             return
 
     @staticmethod
     def get_storage_client():
+        # FIXME: Check the azure connection first before call the method
         return azure_storage_client.AzureStorageClient(AzureStorageConfig())
-
-    @staticmethod
-    def get_blob_client(name=None,
-                        mimetype=None,
-                        config=AzureStorageConfig()
-                        ):
-        return azure_file_entity.AzureFileEntity(name=name, mimetype=mimetype, config=config)
 
     def __check_health(self):
         print('\x1b[32m ------------------------- \x1b[0m')

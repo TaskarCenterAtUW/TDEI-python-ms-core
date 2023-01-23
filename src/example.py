@@ -19,6 +19,30 @@ some_other_sub = 'usdufs'
 
 topic_config = azure_queue_config.AzureQueueConfig()
 
+
+def publish_messages(topic_name):
+    topic_object = Core.get_topic(topic_name=topic_name)
+    queue_message = QueueMessage.data_from({
+        'message': str(uuid.uuid4().hex),
+        'data': {'a': 1}
+    })
+    topic_object.publish(data=queue_message)
+
+
+def subscribe(topic_name, subscription_name):
+    def process(message):
+        print(message)
+
+    topic_object = Core.get_topic(topic_name=topic_name)
+    try:
+        topic_object.subscribe(subscription=subscription_name, callback=process)
+    except Exception as e:
+        print(e)
+
+
+publish_messages(topic)
+subscribe(topic, subscription)
+
 azure_client = Core.get_storage_client()
 
 container = azure_client.get_container(container_name='tdei-storage-test')
@@ -46,26 +70,3 @@ logger.record_metric(name='test', value='test')
 
 logger = Core.get_logger(provider='Local')
 logger.record_metric(name='test', value='test')
-
-
-def on_connect_callback(instance):
-    print('Connected with result code {}'.format(instance.get_messages()))
-    time.sleep(30)
-    sys.exit()
-
-
-topicObject1 = Core.get_topic(topic_name=topic, callback=on_connect_callback)
-topicObject2 = Core.get_topic(topic_name='tipic')
-try:
-    topicObject2.subscribe(subscription=subscription)
-except Exception as e:
-    print(e)
-
-queue_message = QueueMessage.data_from({
-    'message': str(uuid.uuid4().hex),
-    'data': {'a': 1}
-})
-
-topicObject1.publish(data=queue_message)
-
-topicObject1.subscribe(subscription=subscription)
