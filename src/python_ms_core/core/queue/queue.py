@@ -15,7 +15,7 @@ class Queue:
     def __init__(self, config):
         if config.provider == 'Azure':
             try:
-                self.azure = AzureServiceBusQueue(config)
+                self.provider = AzureServiceBusQueue(config)
             except Exception as e:
                 print(f'Failed to initialize queue with error: {e}')
         elif config.provider == 'Local':
@@ -27,10 +27,10 @@ class Queue:
     def send(self, data=None):
         if data:
             message = QueueMessage.to_dict(data)
-            with self.azure.client:
-                sender = self.azure.client.get_queue_sender(queue_name=self.azure.queue_name)
+            with self.provider.client:
+                sender = self.provider.client.get_queue_sender(queue_name=self.azure.queue_name)
                 with sender:
-                    sender.send_messages(self.azure.sender(json.dumps(message)))
+                    sender.send_messages(self.provider.sender(json.dumps(message)))
         self.queue = list()
 
     def send_local(self, data=None):
