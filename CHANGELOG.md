@@ -1,8 +1,11 @@
 # Change log
 
+### 0.0.4
+- Fixed threading
+
 ### 0.0.3
 - Removed blocking call from topic subscription
-- Added TODOs abf FIXMEs
+- Added TODOs and FIXMEs
 
 ### 0.0.2
 - Added filtered exception handling

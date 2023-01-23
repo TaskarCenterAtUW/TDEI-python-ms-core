@@ -28,7 +28,7 @@ class Queue:
         if data:
             message = QueueMessage.to_dict(data)
             with self.provider.client:
-                sender = self.provider.client.get_queue_sender(queue_name=self.azure.queue_name)
+                sender = self.provider.client.get_queue_sender(queue_name=self.provider.queue_name)
                 with sender:
                     sender.send_messages(self.provider.sender(json.dumps(message)))
         self.queue = list()
