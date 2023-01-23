@@ -11,7 +11,7 @@ sha = repo.head.object.hexsha
 
 build_date = date.today().strftime('%Y-%m-%d')
 
-version = '0.0.2'
+version = '0.0.3'
 
 with open(version_file_path, 'w+') as version_file:
     version_file.write("version = '{}'\n".format(version))
