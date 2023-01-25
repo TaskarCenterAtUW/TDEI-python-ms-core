@@ -1,5 +1,8 @@
 # Change log
 
+### 0.0.6
+- Added get_remote_url function in FileEntity class which will return the uploaded file url
+
 ### 0.0.5
 - Fixed Storage Blob stream
 
