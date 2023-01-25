@@ -60,9 +60,13 @@ file_like_io = StringIO(txt)
 basename = 'sample-file'
 suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 filename = '_'.join([basename, suffix])
-test_file = container.create_file(f'{filename}.txt', 'text/plain')
+try:
+    test_file = container.create_file(f'{filename}.txt')
+except Exception as e:
+    print(e)
 print('Start uploading...')
 test_file.upload(file_like_io.read())
+print(test_file.get_remote_url())
 print('Uploaded Successfully')
 
 logger = Core.get_logger()

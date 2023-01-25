@@ -15,10 +15,8 @@ class AzureStorageContainer(storage_container.StorageContainer):
         files_list = [azure_file_entity.AzureFileEntity]
         for single_item in blob_iterator:
             blob_client = self.container_client.get_blob_client(single_item.name)
-            files_list.append(
-                azure_file_entity.AzureFileEntity(single_item.name, single_item.content_settings.content_type,
-                                                  blob_client=blob_client))
+            files_list.append(azure_file_entity.AzureFileEntity(single_item.name, blob_client=blob_client))
         return files_list
 
-    def create_file(self, name, mimetype):
-        return azure_file_entity.AzureFileEntity(name, mimetype, self.container_client)
+    def create_file(self, name):
+        return azure_file_entity.AzureFileEntity(name, self.container_client)

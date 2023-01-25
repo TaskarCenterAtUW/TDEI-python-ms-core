@@ -3,13 +3,11 @@ from abc import ABC, abstractmethod
 
 class FileEntity(ABC):
     name = ''
-    mimetype = 'text/plain'
     file_path = ''
 
     @abstractmethod
-    def __init__(self, name: str, mimetype: str = 'text/plain'):
+    def __init__(self, name: str):
         self.name = name
-        self.mimetype = mimetype
         self.file_path = name
         pass
 
@@ -23,4 +21,8 @@ class FileEntity(ABC):
 
     @abstractmethod
     def upload(self, upload_stream):
+        pass
+
+    @abstractmethod
+    def get_remote_url(self):
         pass
