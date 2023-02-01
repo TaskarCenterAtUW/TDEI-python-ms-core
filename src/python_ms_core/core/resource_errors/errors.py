@@ -45,3 +45,5 @@ class TooManyRequestError(ServiceError):
     status = 429
 
 
+class InternalServerError(ServiceError):
+    status = 500

@@ -24,6 +24,7 @@ class Callback:
                     finally:
                         topic_receiver.complete_message(message)
 
+
 class Topic:
     def __init__(self, config=None, topic_name=None):
         self.topic = topic_name
@@ -40,6 +41,7 @@ class Topic:
         if subscription is not None:
             cb = Callback(callback)
             thread = threading.Thread(target=cb.messages, args=(self.provider,self.topic, subscription))
+            thread.daemon = True
             thread.start()
             time.sleep(5)
         else:
@@ -53,4 +55,3 @@ class Topic:
             sender = self.provider.client.get_topic_sender(topic_name=self.provider.topic)
             with sender:
                 sender.send_messages(self.provider.sender(json.dumps(message)))
-        print('Message Sent')

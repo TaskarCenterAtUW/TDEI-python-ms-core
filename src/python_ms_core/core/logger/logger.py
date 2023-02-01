@@ -12,7 +12,7 @@ class Logger(LoggerAbstract):
         self.config = AzureServiceBusTopic()
         self.queue_client = Queue(self.config)
 
-    def add_request(self, request_data):
+    def add_request(self, request_data: dict):
         message = QueueMessage.data_from({
             'message': 'Add Request',
             'messageType': 'addRequest',
