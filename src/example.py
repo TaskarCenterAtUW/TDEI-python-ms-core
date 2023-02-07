@@ -1,13 +1,16 @@
 # Testing code
-
+import sys
+import os
+import time
 import uuid
+import random
 import datetime
 from io import BytesIO, StringIO
 
 from python_ms_core import Core
 from python_ms_core.core.queue.models.queue_message import QueueMessage
 
-core = Core()
+core = Core(config='Local')
 print('Hello')
 
 topic = 'gtfs-flex-upload'
@@ -19,14 +22,15 @@ def publish_messages(topic_name):
     topic_object = core.get_topic(topic_name=topic_name)
     queue_message = QueueMessage.data_from({
         'message': str(uuid.uuid4().hex),
-        'data': {'a': 1}
+        'data': {'a': random.randint(0, 1000)}
     })
     topic_object.publish(data=queue_message)
+    print('Message Published')
 
 
 def subscribe(topic_name, subscription_name):
     def process(message):
-        print(message)
+        print(f'Message Received: {message}')
 
     topic_object = core.get_topic(topic_name=topic_name)
     try:
@@ -35,17 +39,16 @@ def subscribe(topic_name, subscription_name):
         print(e)
 
 
-publish_messages(topic)
 subscribe(topic, subscription)
 
 azure_client = core.get_storage_client()
 
-container = azure_client.get_container(container_name='tdei-storage-test')
+container = azure_client.get_container(container_name='gtfspathways')
 
 list_of_files = container.list_files()
 for single in list_of_files:
-    print(single.name)
-firstFile = list_of_files[2]
+    print(single.path)
+firstFile = list_of_files[0]
 # print(firstFile.name+'<><>')
 file_content = firstFile.get_body_text()
 
@@ -67,5 +70,9 @@ print('Uploaded Successfully')
 logger = core.get_logger()
 logger.record_metric(name='test', value='test')
 
+publish_messages(topic)
+time.sleep(2)
+
 # logger = core.get_logger()
 # logger.record_metric(name='test', value='test')
+os._exit(os.EX_OK)

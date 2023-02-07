@@ -1,14 +1,16 @@
 from .core.logger.logger import Logger
 from .core.logger.local_logger import LocalLogger
 from .core.topic.topic import Topic
-from .core.storage.providers.azure import azure_storage_client, azure_file_entity
+from .core.topic.local_topic import LocalTopic
+from .core.storage.providers.azure.azure_storage_client import AzureStorageClient
+from .core.storage.providers.local.local_storage_client import LocalStorageClient
 from .core.config.config import CoreConfig, LocalConfig
 
+LOCAL_ENV = 'LOCAL'
 
 class Core:
     def __init__(self, config=None):
-
-        if config is not None and config.lower() == 'local':
+        if config is not None and config.upper() == LOCAL_ENV:
             self.config = LocalConfig()
         else:
             self.config = CoreConfig()
@@ -16,18 +18,24 @@ class Core:
 
     def get_logger(self):
         logger_config = self.config.logger()
-        if logger_config.provider.lower() == 'local':
+        if logger_config.provider.upper() == LOCAL_ENV:
             return LocalLogger(config=logger_config)
         else:
             return Logger(config=logger_config)
 
     def get_topic(self, topic_name: str):
         topic_config = self.config.topic()
-        return Topic(config=topic_config, topic_name=topic_name)
+        if topic_config.provider.upper() == LOCAL_ENV:
+            return LocalTopic(config=topic_config, topic_name=topic_name)
+        else:
+            return Topic(config=topic_config, topic_name=topic_name)
 
     def get_storage_client(self):
         storage_config = self.config.storage()
-        return azure_storage_client.AzureStorageClient(storage_config)
+        if storage_config.provider.upper() == LOCAL_ENV:
+            return LocalStorageClient(storage_config)
+        else:
+            return AzureStorageClient(storage_config)
 
     def __check_health(self):
         print('\x1b[32m ------------------------- \x1b[0m')

@@ -86,7 +86,7 @@ class LocalConfig:
     def topic(self):
         return TopicConfig(
             provider=self.provider,
-            con_string='amqp://guest:guest@rabbitmq:5672/'
+            con_string='amqp://guest:guest@localhost:5672'
         )
 
     def storage(self):

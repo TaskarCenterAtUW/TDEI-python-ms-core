@@ -36,7 +36,6 @@ class Topic(TopicAbstract):
         if subscription is not None:
             cb = Callback(callback)
             thread = threading.Thread(target=cb.messages, args=(self.provider, self.topic, subscription))
-            thread.daemon = True
             thread.start()
             time.sleep(5)
         else:

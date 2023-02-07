@@ -1,13 +1,9 @@
-import os
 import json
 import requests
-from dotenv import load_dotenv
 from .config.queue_config import Config
 from .models.queue_message import QueueMessage
 from .abstracts.queue_abstract import QueueAbstract
 from ..resource_errors import ExceptionHandler
-
-load_dotenv()
 
 
 class Queue(QueueAbstract):
@@ -29,11 +25,12 @@ class Queue(QueueAbstract):
     def send_local(self, data=None):
         if data:
             message = QueueMessage.to_dict(data)
-            url = os.environ.get('CALLBACK_URL', 'http://127.0.0.1:8000/logs')
+            url = f'{self.provider.queue_name}/log'
             try:
                 resp = requests.post(url, json=message)
                 print(resp.status_code)
-            except Exception:
+            except Exception as e:
+                print(e)
                 print(message)
 
         self.queue = list()
