@@ -2,9 +2,10 @@ import json
 import logging
 import threading
 import time
-from .providers.azure_service_bus_topic import AzureServiceBusTopic
+from .config.topic_config import Config
+from .abstract.topic_abstract import TopicAbstract
 from ..resource_errors import ExceptionHandler
-from .models.queue_message import QueueMessage
+from ..queue.models.queue_message import QueueMessage
 
 
 class Callback:
@@ -25,22 +26,16 @@ class Callback:
                         topic_receiver.complete_message(message)
 
 
-class Topic:
+class Topic(TopicAbstract):
     def __init__(self, config=None, topic_name=None):
         self.topic = topic_name
-        if config.provider == 'Azure':
-            try:
-                self.provider = AzureServiceBusTopic(topic_name=topic_name)
-            except Exception as e:
-                logging.error(f'Failed to initialize Topic with error: {e}')
-        else:
-            logging.error('Failed to initialize Topic')
+        self.provider = Config(config=config, topic_name=topic_name)
 
     @ExceptionHandler.decorated
     def subscribe(self, subscription=None, callback=None):
         if subscription is not None:
             cb = Callback(callback)
-            thread = threading.Thread(target=cb.messages, args=(self.provider,self.topic, subscription))
+            thread = threading.Thread(target=cb.messages, args=(self.provider, self.topic, subscription))
             thread.daemon = True
             thread.start()
             time.sleep(5)

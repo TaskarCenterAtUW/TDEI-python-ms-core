@@ -1,7 +1,7 @@
 import logging
 import urllib.parse
 from azure.storage.blob import BlobServiceClient
-from . import azure_storage_config, azure_file_entity, azure_storage_container
+from . import azure_file_entity, azure_storage_container
 from ...abstract import storage_client
 from ....resource_errors import ExceptionHandler
 
@@ -9,7 +9,7 @@ from ....resource_errors import ExceptionHandler
 class AzureStorageClient(storage_client.StorageClient):
     _blob_service_client: BlobServiceClient
 
-    def __init__(self, config: azure_storage_config.AzureStorageConfig):
+    def __init__(self, config):
         super().__init__()
         self.config = config
         self._blob_service_client = BlobServiceClient.from_connection_string(config.connection_string)

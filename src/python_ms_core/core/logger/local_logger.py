@@ -1,15 +1,13 @@
-from .providers.azure_logger_config import AzureLoggerConfig
+from .abstracts.logger_abstract import LoggerAbstract
 from ..queue.models.queue_message import QueueMessage
 from ..queue.queue import Queue
-from .abstracts.logger_abstract import LoggerAbstract
 
 
 class LocalLogger(LoggerAbstract):
 
-    def __init__(self, provider_config=None):
-        super().__init__(provider_config=provider_config)
-        self.config = AzureLoggerConfig(provider_config=provider_config)
-        self.queue_client = Queue(self.config)
+    def __init__(self, config=None):
+        super().__init__(config=config)
+        self.queue_client = Queue(config)
 
     def add_request(self, request_data):
         message = QueueMessage.data_from({

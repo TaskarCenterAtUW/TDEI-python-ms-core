@@ -2,26 +2,19 @@ import os
 import json
 import requests
 from dotenv import load_dotenv
-from .providers.azure_service_bus_queue import AzureServiceBusQueue
-from ..resource_errors import ExceptionHandler
+from .config.queue_config import Config
 from .models.queue_message import QueueMessage
+from .abstracts.queue_abstract import QueueAbstract
+from ..resource_errors import ExceptionHandler
 
 load_dotenv()
 
 
-class Queue:
+class Queue(QueueAbstract):
     queue = list()
 
     def __init__(self, config):
-        if config.provider == 'Azure':
-            try:
-                self.provider = AzureServiceBusQueue(config)
-            except Exception as e:
-                print(f'Failed to initialize queue with error: {e}')
-        elif config.provider == 'Local':
-            print('Will send massages to localhost')
-        else:
-            print('Failed to initialize queue')
+        self.provider = Config(config=config)
 
     @ExceptionHandler.decorated
     def send(self, data=None):
