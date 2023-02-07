@@ -36,9 +36,6 @@ class LocalTopic(TopicAbstract):
     @ExceptionHandler.decorated
     def subscribe(self, subscription=None, callback=None):
 
-        def return_message(ch, method, properties, body):
-            print('--------')
-
         if subscription is not None:
             if self.connection.is_open:
                 self.connection.close()
