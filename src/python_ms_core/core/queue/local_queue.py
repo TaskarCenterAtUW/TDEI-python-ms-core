@@ -6,7 +6,7 @@ from .abstracts.queue_abstract import QueueAbstract
 from ..resource_errors import ExceptionHandler
 
 
-class Queue(QueueAbstract):
+class LocalQueue(QueueAbstract):
     queue = list()
 
     def __init__(self, config):
@@ -16,10 +16,14 @@ class Queue(QueueAbstract):
     def send(self, data=None):
         if data:
             message = QueueMessage.to_dict(data)
-            with self.provider.client:
-                sender = self.provider.client.get_queue_sender(queue_name=self.provider.queue_name)
-                with sender:
-                    sender.send_messages(self.provider.sender(json.dumps(message)))
+            url = f'{self.provider.queue_name}/log'
+            try:
+                resp = requests.post(url, json=message)
+                print(resp.status_code)
+            except Exception as e:
+                print(e)
+                print(message)
+
         self.queue = list()
 
     def add(self, data):
