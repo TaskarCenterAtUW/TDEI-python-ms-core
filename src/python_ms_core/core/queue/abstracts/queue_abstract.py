@@ -9,9 +9,6 @@ class QueueAbstract(ABC):
     def send(self, data=None): pass
 
     @abstractmethod
-    def send_local(self, data=None): pass
-
-    @abstractmethod
     def add(self, data): pass
 
     @abstractmethod

@@ -67,30 +67,34 @@ class CoreConfig:
 
 class LocalConfig:
     def __init__(self):
-        self.provider = 'local'
+        self.provider = os.environ.get('PROVIDER', 'local')
+        self.queue_connection = os.environ.get('QUEUECONNECTION', 'amqp://guest:guest@localhost:5672')
+        self.queue_name = os.environ.get('LOGGERQUEUE', 'http://localhost:8100')
+        self.topic_connection = os.environ.get('QUEUECONNECTION', 'amqp://guest:guest@localhost:5672')
+        self.storage_connection = os.environ.get('STORAGECONNECTION', 'http://localhost:8100')
 
     def logger(self):
         return LogerConfig(
             provider=self.provider,
-            con_string='amqp://guest:guest@rabbitmq:5672/',
-            queue_name='http://localhost:8100'
+            con_string=self.queue_connection,
+            queue_name=self.queue_name
         )
 
     def queue(self):
         return QueueConfig(
             provider=self.provider,
-            con_string='amqp://guest:guest@rabbitmq:5672/',
-            queue_name='http://localhost:8100'
+            con_string=self.queue_connection,
+            queue_name=self.queue_name
         )
 
     def topic(self):
         return TopicConfig(
             provider=self.provider,
-            con_string='amqp://guest:guest@localhost:5672'
+            con_string=self.topic_connection
         )
 
     def storage(self):
         return StorageConfig(
             provider=self.provider,
-            con_string='http://localhost:8100'
+            con_string=self.storage_connection
         )

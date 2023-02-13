@@ -29,7 +29,7 @@ class LocalFileEntity(FileEntity):
         upload_path = f'{self.path}/{self.name}'
         upload_relative_path = f'{self.config.connection_string}{self.upload_path}{upload_path}'
         requests.post(upload_relative_path, files={'uploadFile': upload_stream})
-        self._get_remote_url = f'{upload_relative_path}/uploadFile'
+        self._get_remote_url = upload_relative_path
 
     @ExceptionHandler.decorated
     def get_remote_url(self):

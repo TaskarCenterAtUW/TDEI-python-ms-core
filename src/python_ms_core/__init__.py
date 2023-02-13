@@ -1,3 +1,4 @@
+import logging
 from .core.logger.logger import Logger
 from .core.logger.local_logger import LocalLogger
 from .core.topic.topic import Topic
@@ -7,6 +8,8 @@ from .core.storage.providers.local.local_storage_client import LocalStorageClien
 from .core.config.config import CoreConfig, LocalConfig
 
 LOCAL_ENV = 'LOCAL'
+AZURE_ENV = 'AZURE'
+
 
 class Core:
     def __init__(self, config=None):
@@ -20,22 +23,28 @@ class Core:
         logger_config = self.config.logger()
         if logger_config.provider.upper() == LOCAL_ENV:
             return LocalLogger(config=logger_config)
-        else:
+        elif logger_config.provider.upper() == AZURE_ENV:
             return Logger(config=logger_config)
+        else:
+            logging.error(f'Unimplemented initialization for core {logger_config.provider}')
 
     def get_topic(self, topic_name: str):
         topic_config = self.config.topic()
         if topic_config.provider.upper() == LOCAL_ENV:
             return LocalTopic(config=topic_config, topic_name=topic_name)
-        else:
+        elif topic_config.provider.upper() == AZURE_ENV:
             return Topic(config=topic_config, topic_name=topic_name)
+        else:
+            logging.error(f'Unimplemented initialization for core {topic_config.provider}')
 
     def get_storage_client(self):
         storage_config = self.config.storage()
         if storage_config.provider.upper() == LOCAL_ENV:
             return LocalStorageClient(storage_config)
-        else:
+        elif storage_config.provider.upper() == AZURE_ENV:
             return AzureStorageClient(storage_config)
+        else:
+            logging.error(f'Unimplemented initialization for core {storage_config.provider}')
 
     def __check_health(self):
         print('\x1b[32m ------------------------- \x1b[0m')

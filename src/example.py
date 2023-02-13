@@ -13,7 +13,7 @@ from python_ms_core.core.queue.models.queue_message import QueueMessage
 core = Core(config='Local')
 print('Hello')
 
-topic = 'gtfs-flex-upload'
+topic = 'gtfspathways'
 subscription = 'upload-validation-processor-test'
 some_other_sub = 'usdufs'
 
@@ -46,11 +46,12 @@ azure_client = core.get_storage_client()
 container = azure_client.get_container(container_name='gtfspathways')
 
 list_of_files = container.list_files()
-for single in list_of_files:
-    print(single.path)
-firstFile = list_of_files[0]
-# print(firstFile.name+'<><>')
-file_content = firstFile.get_body_text()
+if len(list_of_files) > 0:
+    for single in list_of_files:
+        print(single.path)
+    firstFile = list_of_files[0]
+    # print(firstFile.name+'<><>')
+    file_content = firstFile.get_body_text()
 
 # Creating a text stream
 txt = 'foo\nbar\nbaz'
