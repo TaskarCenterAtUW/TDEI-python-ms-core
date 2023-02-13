@@ -22,19 +22,6 @@ class Queue(QueueAbstract):
                     sender.send_messages(self.provider.sender(json.dumps(message)))
         self.queue = list()
 
-    def send_local(self, data=None):
-        if data:
-            message = QueueMessage.to_dict(data)
-            url = f'{self.provider.queue_name}/log'
-            try:
-                resp = requests.post(url, json=message)
-                print(resp.status_code)
-            except Exception as e:
-                print(e)
-                print(message)
-
-        self.queue = list()
-
     def add(self, data):
         if data is not None:
             self.queue.insert(0, json.dumps(data))
