@@ -1,18 +1,15 @@
-import logging
-from ..queue.providers.azure_service_bus_topic import AzureServiceBusTopic
+from .abstracts.logger_abstract import LoggerAbstract
 from ..queue.models.queue_message import QueueMessage
 from ..queue.queue import Queue
-from .abstracts.logger_abstract import LoggerAbstract
 
 
 class Logger(LoggerAbstract):
 
-    def __init__(self):
-        super().__init__()
-        self.config = AzureServiceBusTopic()
-        self.queue_client = Queue(self.config)
+    def __init__(self, config=None):
+        super().__init__(config=config)
+        self.queue_client = Queue(config)
 
-    def add_request(self, request_data):
+    def add_request(self, request_data: dict):
         message = QueueMessage.data_from({
             'message': 'Add Request',
             'messageType': 'addRequest',

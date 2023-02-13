@@ -5,7 +5,7 @@ class ServiceError(Exception):
         super().__init__(*args, **kwargs)
         if args:
             self.message = args[0]['message']
-            self.status_code = args[0]['status_code'] if args[0]['status_code'] != 0 else self.status
+            self.status_code = args[0]['status_code'] if int(args[0]['status_code']) > 0 else self.status
             self.description = args[0]['description']
         else:
             self.message = None
@@ -45,3 +45,5 @@ class TooManyRequestError(ServiceError):
     status = 429
 
 
+class InternalServerError(ServiceError):
+    status = 500

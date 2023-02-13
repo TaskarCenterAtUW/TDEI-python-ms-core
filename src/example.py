@@ -1,34 +1,57 @@
 # Testing code
-
 import sys
+import os
+import time
 import uuid
+import random
 import datetime
 from io import BytesIO, StringIO
-import time
 
 from python_ms_core import Core
-from python_ms_core.core.queue.providers import azure_queue_config
 from python_ms_core.core.queue.models.queue_message import QueueMessage
 
-Core.initialize()
+core = Core(config='Local')
 print('Hello')
 
-topic = 'gtfs-flex-upload'
+topic = 'gtfspathways'
 subscription = 'upload-validation-processor-test'
 some_other_sub = 'usdufs'
 
-topic_config = azure_queue_config.AzureQueueConfig()
 
-azure_client = Core.get_storage_client()
+def publish_messages(topic_name):
+    topic_object = core.get_topic(topic_name=topic_name)
+    queue_message = QueueMessage.data_from({
+        'message': str(uuid.uuid4().hex),
+        'data': {'a': random.randint(0, 1000)}
+    })
+    topic_object.publish(data=queue_message)
+    print('Message Published')
 
-container = azure_client.get_container(container_name='tdei-storage-test')
+
+def subscribe(topic_name, subscription_name):
+    def process(message):
+        print(f'Message Received: {message}')
+
+    topic_object = core.get_topic(topic_name=topic_name)
+    try:
+        topic_object.subscribe(subscription=subscription_name, callback=process)
+    except Exception as e:
+        print(e)
+
+
+subscribe(topic, subscription)
+
+azure_client = core.get_storage_client()
+
+container = azure_client.get_container(container_name='gtfspathways')
 
 list_of_files = container.list_files()
-for single in list_of_files:
-    print(single.name)
-firstFile = list_of_files[2]
-# print(firstFile.name+'<><>')
-file_content = firstFile.get_body_text()
+if len(list_of_files) > 0:
+    for single in list_of_files:
+        print(single.path)
+    firstFile = list_of_files[0]
+    # print(firstFile.name+'<><>')
+    file_content = firstFile.get_body_text()
 
 # Creating a text stream
 txt = 'foo\nbar\nbaz'
@@ -36,36 +59,21 @@ file_like_io = StringIO(txt)
 basename = 'sample-file'
 suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 filename = '_'.join([basename, suffix])
-test_file = container.create_file(f'{filename}.txt', 'text/plain')
-print('Start uploading...')
-test_file.upload(file_like_io.read())
-print('Uploaded Successfully')
-
-logger = Core.get_logger()
-logger.record_metric(name='test', value='test')
-
-logger = Core.get_logger(provider='Local')
-logger.record_metric(name='test', value='test')
-
-
-def on_connect_callback(instance):
-    print('Connected with result code {}'.format(instance.get_messages()))
-    time.sleep(30)
-    sys.exit()
-
-
-topicObject1 = Core.get_topic(topic_name=topic, callback=on_connect_callback)
-topicObject2 = Core.get_topic(topic_name='tipic')
 try:
-    topicObject2.subscribe(subscription=subscription)
+    test_file = container.create_file(f'{filename}.txt')
 except Exception as e:
     print(e)
+print('Start uploading...')
+test_file.upload(file_like_io.read())
+print(test_file.get_remote_url())
+print('Uploaded Successfully')
 
-queue_message = QueueMessage.data_from({
-    'message': str(uuid.uuid4().hex),
-    'data': {'a': 1}
-})
+logger = core.get_logger()
+logger.record_metric(name='test', value='test')
 
-topicObject1.publish(data=queue_message)
+publish_messages(topic)
+time.sleep(2)
 
-topicObject1.subscribe(subscription=subscription)
+# logger = core.get_logger()
+# logger.record_metric(name='test', value='test')
+os._exit(os.EX_OK)

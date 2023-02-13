@@ -24,7 +24,7 @@ All the cloud connections are initialized with `initialize` function of core whi
 Eg.
 ```python
 from python_ms_core import Core
-Core.initialize()
+core = Core() or Core(config='Local')
 ```
 The method analyzes the `.env` variables and does a health check on what components are available
 
@@ -56,12 +56,13 @@ This file will have to be generated or shared offline as per the developer requi
 Offers helper classes to help log the information. It is also used to record the audit messages
 as well as the analytics information required.
 
-Use `Core.get_logger()`
+Use `core.get_logger()`
 Eg.
 ```python
 from python_ms_core import Core
 
-logger = Core.get_logger()
+core = Core()
+logger = core.get_logger()
 
 # Record a metric
 logger.record_metric(name='test', value='test') # Metric and value
@@ -74,7 +75,8 @@ Eg.
 ```python
 from python_ms_core import Core
 
-logger = Core.get_logger()
+core = Core()
+logger = core.get_logger()
 
 # Record a metric
 logger.debug('Debug Message')
@@ -102,15 +104,12 @@ The configuration required by Queue and Topic is similar and will be handled via
 
 Topic can be accessed by the core method `get_topic`. This method takes two parameters
 1. topic name (required)
-2. callback function where messages will be received
 
 ```python
 from python_ms_core import Core
 
-def callback(instance):
-    print(instance.get_messages())
-
-topic = Core.get_topic(topic_name='topicName', callback=callback)
+core = Core()
+topic = core.get_topic(topic_name='topicName')
 
 ```
 
@@ -121,7 +120,8 @@ Once the topic object is got, use `publish` method to publish the message to top
 from python_ms_core import Core
 from python_ms_core.core.queue.models.queue_message import QueueMessage
 
-topic = Core.get_topic(topic_name='topicName')
+core = Core()
+topic = core.get_topic(topic_name='topicName')
 topic.publish(QueueMessage.data_from(
     {
         'message': 'Test message'
@@ -139,9 +139,16 @@ It takes one parameter
 ```python
 from python_ms_core import Core
 
-topic = Core.get_topic(topic_name='topicName')
-msg = topic.subscribe(subscription='subscriptionName')
-print(msg)
+core = Core()
+topic_object = topic = Core.get_topic(topic_name='topicName')
+
+def process(message):
+    print(f'Message Received: {message}')
+
+try:
+    topic_object.subscribe(subscription='subscriptionName')
+except Exception as e:
+    print(e)
 ```
 
 ### Storage
@@ -149,8 +156,9 @@ For all the azure blobs and other storages, storage components will offer simple
 ```python
 from python_ms_core import Core
 
+core = Core()
 # Create storage client
-azure_client = Core.get_storage_client()
+azure_client = core.get_storage_client()
 
 # Get a container in the storage client
 container = azure_client.get_container(container_name='tdei-storage-test')
@@ -168,7 +176,8 @@ File upload is done only through read stream.
 from python_ms_core import Core
 from io import BytesIO, StringIO
 
-azure_client = Core.get_storage_client()
+core = Core()
+azure_client = core.get_storage_client()
 container = azure_client.get_container(container_name='tdei-storage-test')
 # Create an instance of `AzureFileEntity` with name and mime-type
 txt = 'foo\nbar\nbaz'
