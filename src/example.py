@@ -9,6 +9,7 @@ from io import BytesIO, StringIO
 
 from python_ms_core import Core
 from python_ms_core.core.queue.models.queue_message import QueueMessage
+from python_ms_core.core.auth.models.permission_request import PermissionRequest
 
 core = Core(config='Local')
 print('Hello')
@@ -74,6 +75,19 @@ logger.record_metric(name='test', value='test')
 publish_messages(topic)
 time.sleep(2)
 
-# logger = core.get_logger()
-# logger.record_metric(name='test', value='test')
+permission_params = PermissionRequest(
+    user_id='7961d767-a352-464f-95b6-cd1c5189a93c',
+    org_id='5e339544-3b12-40a5-8acd-78c66d1fa981',
+    should_satisfy_all=False,
+    permissions=['poc']
+)
+
+try:
+    auth = core.get_authorizer()
+    resp = auth.has_permission(request_params=permission_params)
+    print(resp)
+except Exception as e:
+    print(f'Request failed with Code: {e.status_code}, Message: {e.message}')
+    print()
+
 os._exit(os.EX_OK)

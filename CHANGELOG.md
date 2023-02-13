@@ -1,5 +1,12 @@
 # Change log
 
+### 0.0.8
+- Authorization methods included
+- Simulated and Hosted Authorizers implemented
+- Examples written for both
+- Readme updated appropriately.
+
+
 ### 0.0.7
 - Fixed configuration issues
 - Fixed all the review comments
