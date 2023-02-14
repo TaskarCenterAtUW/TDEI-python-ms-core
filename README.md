@@ -188,3 +188,85 @@ test_file = container.create_file('text.txt', 'text/plain')
 test_file.upload(file_like_io.read())
 ```
 
+## Authorization
+
+Core offers a simple way of verifying the authorization of a user and their role.
+
+Checking the permission involves three steps
+1. Preparing a permission request object
+2. Getting an authorizer object from core
+3. Requesting if the permission is valid/true
+
+### Preparing the permission request
+
+```python
+from python_ms_core.core.auth.models.permission_request import PermissionRequest
+
+permission_request = PermissionRequest(
+    user_id='<userID>',
+    org_id='<orgID>',
+    should_satisfy_all=False,
+    permissions=['permission1', 'permission2']
+)
+
+```
+
+In the above example, `should_satisfy_all` helps in figuring out if all the permissions are needed or any one of the permission is sufficient.
+
+### Getting the authorizer from core
+
+Core exposes `get_authorizer` method with 2 parameters
+
+1. `request_params` parameter which is instance of `PermissionRequest` class (Mandatory Parameter).
+2. `config` parameter (Optional)
+
+There are two types of `Authorizer` objects in core. 
+1. HostedAuthorizer: checks the permissions against a hosted API
+2. SimulatedAuthorizer: makes a simulated authorizer used for local/non-hosted environment.
+
+The following code demonstrates getting the simulated and hosted authorizer
+```python
+from python_ms_core import Core
+core = Core()
+# HostedAuthorizer 
+
+hosted_authorizer = core.get_authorizer(config={'provider': 'Hosted', 'api_url': '<AUTH_API_URL>'})
+
+simulated_authorizer = core.get_authorizer(config={'provider': 'Simulated'})
+
+```
+In case `api_url` is not provided for `Hosted` auth provider, the core will pick it up from environment variable `AUTHURL`
+
+#### Requesting if certain permission is valid:
+
+Use the method `has_ermission(request_params)` to know if the permission request is valid/not.
+
+```python
+
+# Complete Example
+from python_ms_core import Core
+from python_ms_core.core.auth.models.permission_request import PermissionRequest
+
+core = Core()
+
+
+permission_request = PermissionRequest(
+    user_id='<userID>',
+    org_id='<orgID>',
+    should_satisfy_all=False,
+    permissions=['permission1', 'permission2']
+)
+
+# With Hosted provider
+auth_provider = core.get_authorizer(config={'provider': 'Hosted', 'api_url': '<AUTH_API_URL>'})
+response = auth_provider.has_permission(request_params=permission_request)
+# Response will be boolean
+
+# With Simulated provider
+auth_provider = core.get_authorizer(config={'provider': 'Simulated'})
+response = auth_provider.has_permission(request_params=permission_request)
+# Response will be boolean
+```
+
+#### How does Simulated authentication work?
+With simulated authentication, the method `has_permission` simply returns the value given in `should_satisfy_all` property in the permission request.

@@ -30,6 +30,12 @@ class StorageConfig:
         self.connection_string = con_string
 
 
+class AuthConfig:
+    def __init__(self, provider: str, auth_url: str = None):
+        self.provider = provider
+        self.auth_url = auth_url
+
+
 class CoreConfig:
     def __init__(self):
         self.provider = os.environ.get('PROVIDER', 'Azure')
@@ -37,6 +43,7 @@ class CoreConfig:
         self.queue_name = os.environ.get('LOGGERQUEUE', 'tdei-ms-log')
         self.topic_connection = os.environ.get('QUEUECONNECTION', None)
         self.storage_connection = os.environ.get('STORAGECONNECTION', None)
+        self.auth_url = os.environ.get('AUTHURL', None)
 
     def logger(self):
         return LogerConfig(
@@ -62,6 +69,12 @@ class CoreConfig:
         return StorageConfig(
             provider=self.provider,
             con_string=self.storage_connection
+        )
+
+    def auth(self):
+        return AuthConfig(
+            provider='Hosted',
+            auth_url=self.auth_url
         )
 
 
@@ -97,4 +110,9 @@ class LocalConfig:
         return StorageConfig(
             provider=self.provider,
             con_string=self.storage_connection
+        )
+
+    def auth(self):
+        return AuthConfig(
+            provider='Simulated'
         )
