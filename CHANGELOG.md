@@ -1,5 +1,9 @@
 # Change log
 
+### 0.0.9
+- Adding files to python package
+ 
+
 ### 0.0.8
 - Authorization methods included
 - Simulated and Hosted Authorizers implemented
