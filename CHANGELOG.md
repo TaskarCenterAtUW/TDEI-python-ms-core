@@ -1,5 +1,9 @@
 # Change log
 
+### 0.0.12
+- Added name_starts_with parameter in Storage
+
+
 ### 0.0.11
 - Added Local Storage
 

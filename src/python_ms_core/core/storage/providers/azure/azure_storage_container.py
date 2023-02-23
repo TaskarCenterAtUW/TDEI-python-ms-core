@@ -12,8 +12,11 @@ class AzureStorageContainer(storage_container.StorageContainer):
         self.container_client = container_client
 
     @ExceptionHandler.decorated
-    def list_files(self):
-        blob_iterator = self.container_client.list_blobs()
+    def list_files(self, name_starts_with=None):
+        if name_starts_with:
+            blob_iterator = self.container_client.list_blobs(name_starts_with=name_starts_with)
+        else:
+            blob_iterator = self.container_client.list_blobs()
         files_list = []
         for single_item in blob_iterator:
             blob_client = self.container_client.get_blob_client(single_item.name)
