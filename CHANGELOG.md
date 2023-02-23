@@ -1,6 +1,9 @@
 # Change log
 
 ### 0.0.9
+- Added TopicAbstract and TopicConfig to package
+
+### 0.0.9
 - Adding files to python package
  
 
