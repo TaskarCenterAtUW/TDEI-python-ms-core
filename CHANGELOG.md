@@ -1,7 +1,12 @@
 # Change log
 
-### 0.0.9
+### 0.0.11
+- Added Local Storage
+
+
+### 0.0.10
 - Added TopicAbstract and TopicConfig to package
+
 
 ### 0.0.9
 - Adding files to python package
