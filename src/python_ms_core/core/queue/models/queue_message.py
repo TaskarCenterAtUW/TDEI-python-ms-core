@@ -15,7 +15,7 @@ class Validations:
 
 @dataclass
 class QueueMessage(Validations):
-    message: str
+    message: str = ''
     messageId: str = ''
     messageType: str = ''
     publishedDate: str = str(datetime.now())
