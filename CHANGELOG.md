@@ -1,5 +1,9 @@
 # Change log
 
+### 0.0.13
+- Removed validation from QueueMassage Class
+
+
 ### 0.0.12
 - Added name_starts_with parameter in Storage
 
