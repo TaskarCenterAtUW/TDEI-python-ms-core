@@ -47,7 +47,6 @@ class QueueMessage(Validations):
         data = self
         if isinstance(data, str):
             data = json.loads(self)
-            print(data)
 
         kwargs = {}
         if data:
