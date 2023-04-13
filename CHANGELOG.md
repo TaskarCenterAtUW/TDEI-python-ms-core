@@ -1,5 +1,8 @@
 # Change log
 
+### 0.0.14
+- Fixed https://dev.azure.com/TDEI-UW/TDEI/_workitems/edit/302
+
 ### 0.0.13
 - Removed validation from QueueMassage Class
 
