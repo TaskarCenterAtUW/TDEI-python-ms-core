@@ -1,5 +1,19 @@
 # Change log
 
+### 0.0.15
+This fixes the inconsistent listening behavior for the subscription of a topic from core.
+- Due to the usage of `for message in receiver` logic in the topic, it is unknown when the loop will end and the core will stop listening to the topic.
+- This is tried with various combinations and figured out that at probably 4 hours from launch, this happens. The root cause for this is the socket / connection timeout of the underlying amqp client which throws an exception when trying to iterate next message
+
+Fix made:
+- The above for loop is kept in an infinite while loop which triggers the creation of the receiver and subsequent listening to the messages. 
+- This was tested overnight with messages varying in the time differences (1h to 3h)
+- Specific method to look for the fix `start_listening`
+
+Reference task:
+[302](https://dev.azure.com/TDEI-UW/TDEI/_workitems/edit/302)
+
+
 ### 0.0.14
 - Fixed https://dev.azure.com/TDEI-UW/TDEI/_workitems/edit/302
 
