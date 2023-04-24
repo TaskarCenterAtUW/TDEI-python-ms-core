@@ -16,9 +16,10 @@ class Callback:
     def __init__(self, fn=None):
         self._function_to_call = fn
 
+    # old method to fetch messages. Not used anymore
     def messages(self, provider, topic, subscription):
         with provider.client:
-            topic_receiver = provider.client.get_subscription_receiver(topic, subscription_name=subscription,max_wait_time=200)
+            topic_receiver = provider.client.get_subscription_receiver(topic, subscription_name=subscription)
             logger.info(f'Started receiver for {subscription}')
             with topic_receiver:
                 for message in topic_receiver:
@@ -33,21 +34,28 @@ class Callback:
                 logger.info(f'Completed gathering messages')
             logger.info('Completed topic receiver')
     
+    # Sends data to the callback function
     def process_message(self, message:str):
         queue_message = QueueMessage.data_from(message)
         self._function_to_call(queue_message)
-
+    
+    # Starts listening to the messages
     def start_listening(self, provider, topic, subscription):
         with provider.client: # service bus client
             while True:
-                logger.info('Going into while')
+                logger.info('Initiatig receiver')
                 topic_receiver = provider.client.get_subscription_receiver(topic, subscription_name=subscription) # servicebusclientsubscriptionreceiver
                 with topic_receiver:
                     for message in topic_receiver:
-                        self.process_message(message=str(message)) # sync call. [By default 1minute ] -> lock renewal for 300 seconds
-                        topic_receiver.complete_message(message) # fails -> peeklock is timedout
+                        try:
+                            self.process_message(message=str(message)) # sync call. [By default 1minute ] -> lock renewal for 300 seconds
+                            topic_receiver.complete_message(message)
+                        except Exception as e:
+                            print(f'Error : {e}, Invalid message received : {message}')
+                        finally:
+                            topic_receiver.complete_message(message)
                         # Change mode from PEEK_LOCK to RECEIVE_AND_DELETE
-                logger.info('Completed topic receiver')
+                logger.info('Topic receiver invalidated')
 
 
 class Topic(TopicAbstract):
