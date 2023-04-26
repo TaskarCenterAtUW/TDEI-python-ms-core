@@ -29,9 +29,7 @@ class Callback:
                     except Exception as e:
                         print(f'Error: {e}, Invalid message received: {message}')
                     finally:
-                        print(f'Completing message')
                         topic_receiver.complete_message(message)
-                logger.info(f'Completed gathering messages')
             logger.info('Completed topic receiver')
     
     # Sends data to the callback function
