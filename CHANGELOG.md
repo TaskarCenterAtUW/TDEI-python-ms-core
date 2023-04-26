@@ -1,6 +1,9 @@
 # Change log
 
 ### 0.0.15
+- Removed extra logs
+
+### 0.0.15
 This fixes the inconsistent listening behavior for the subscription of a topic from core.
 - Due to the usage of `for message in receiver` logic in the topic, it is unknown when the loop will end and the core will stop listening to the topic.
 - This is tried with various combinations and figured out that at probably 4 hours from launch, this happens. The root cause for this is the socket / connection timeout of the underlying amqp client which throws an exception when trying to iterate next message
