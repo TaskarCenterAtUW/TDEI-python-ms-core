@@ -1,5 +1,8 @@
 # Change log
 
+### 0.0.16
+- Removed extra logs
+
 ### 0.0.15
 This fixes the inconsistent listening behavior for the subscription of a topic from core.
 - Due to the usage of `for message in receiver` logic in the topic, it is unknown when the loop will end and the core will stop listening to the topic.
