@@ -49,7 +49,6 @@ class Callback:
                     for message in topic_receiver:
                         try:
                             self.process_message(message=str(message)) # sync call. [By default 1minute ] -> lock renewal for 300 seconds
-                            topic_receiver.complete_message(message)
                         except Exception as e:
                             print(f'Error : {e}, Invalid message received : {message}')
                         finally:
