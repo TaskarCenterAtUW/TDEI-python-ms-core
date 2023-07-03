@@ -7,7 +7,7 @@ from .core.storage.providers.azure.azure_storage_client import AzureStorageClien
 from .core.storage.providers.local.local_storage_client import LocalStorageClient
 from .core.auth.provider.hosted.hosted_authorizer import HostedAuthorizer
 from .core.auth.provider.simulated.simulated_authorizer import SimulatedAuthorizer
-from .core.config.config import CoreConfig, LocalConfig, AuthConfig
+from .core.config.config import CoreConfig, LocalConfig, AuthConfig, UnknownConfig
 
 LOCAL_ENV = 'LOCAL'
 AZURE_ENV = 'AZURE'
@@ -17,11 +17,18 @@ SIMULATED_ENV = 'SIMULATED'
 
 class Core:
     def __init__(self, config=None):
-        if config is not None and config.upper() == LOCAL_ENV:
-            self.config = LocalConfig()
+        if config is not None:
+            if config.upper() == LOCAL_ENV:
+                self.config = LocalConfig()
+            elif config.upper() == LOCAL_ENV:
+                self.config = CoreConfig()
+                self.__check_health()
+            else:
+                self.config = UnknownConfig(provider=config)
+                logging.error(f'Failed to initialization core.get_logger for provider: {config}')
         else:
             self.config = CoreConfig()
-        self.__check_health()
+            self.__check_health()
 
     def get_logger(self):
         logger_config = self.config.logger()
@@ -39,7 +46,7 @@ class Core:
         elif topic_config.provider.upper() == AZURE_ENV:
             return Topic(config=topic_config, topic_name=topic_name)
         else:
-            logging.error(f'Failed to  initialization core.get_topic for provider: {topic_config.provider}')
+            logging.error(f'Failed to initialization core.get_topic for provider: {topic_config.provider}')
 
     def get_storage_client(self):
         storage_config = self.config.storage()
@@ -48,7 +55,7 @@ class Core:
         elif storage_config.provider.upper() == AZURE_ENV:
             return AzureStorageClient(storage_config)
         else:
-            logging.error(f'Failed to  initialization core.get_storage_client for provider: {storage_config.provider}')
+            logging.error(f'Failed to initialization core.get_storage_client for provider: {storage_config.provider}')
 
     def get_authorizer(self, config: dict = None):
         if config is None:
@@ -62,7 +69,7 @@ class Core:
         elif auth_config.provider.upper() == HOSTED_ENV:
             return HostedAuthorizer(config=auth_config)
         else:
-            logging.error(f'Failed to  initialization core.get_authorizer for provider: {auth_config.provider}')
+            logging.error(f'Failed to initialization core.get_authorizer for provider: {auth_config.provider}')
 
     def __check_health(self):
         print('\x1b[32m ------------------------- \x1b[0m')

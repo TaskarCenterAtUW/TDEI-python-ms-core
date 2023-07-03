@@ -116,3 +116,44 @@ class LocalConfig:
         return AuthConfig(
             provider='Simulated'
         )
+
+
+class UnknownConfig:
+    def __init__(self, provider: str):
+        self.provider = provider
+        self.queue_connection = None
+        self.queue_name = None
+        self.topic_connection = None
+        self.storage_connection = None
+
+    def logger(self):
+        return LogerConfig(
+            provider=self.provider,
+            con_string=self.queue_connection,
+            queue_name=self.queue_name
+        )
+
+    def queue(self):
+        return QueueConfig(
+            provider=self.provider,
+            con_string=self.queue_connection,
+            queue_name=self.queue_name
+        )
+
+    def topic(self):
+        return TopicConfig(
+            provider=self.provider,
+            con_string=self.topic_connection
+        )
+
+    def storage(self):
+        return StorageConfig(
+            provider=self.provider,
+            con_string=self.storage_connection
+        )
+
+    def auth(self):
+        return AuthConfig(
+            provider='Simulated'
+        )
+

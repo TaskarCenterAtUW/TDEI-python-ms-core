@@ -26,7 +26,6 @@ class LocalTopic(TopicAbstract):
         self.topic = topic_name
         self.config = config
         self.client = Config(config=config, topic_name=topic_name)
-        print(self.client.connection_string)
         params = pika.URLParameters(self.client.connection_string)
         self.connection = pika.BlockingConnection(params)
         self.channel = self.connection.channel()
