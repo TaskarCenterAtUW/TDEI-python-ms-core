@@ -344,28 +344,28 @@ test_unknown_config_storage (test_config.test_cofig.TestUnknownConfig) ... ok
 test_unknown_config_storage_connection_default (test_config.test_cofig.TestUnknownConfig) ... ok
 test_unknown_config_topic (test_config.test_cofig.TestUnknownConfig) ... ok
 test_unknown_config_topic_connection_default (test_config.test_cofig.TestUnknownConfig) ... ok
-test_get_authorizer_no_config (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: SIMULATED
+test_get_authorizer_no_config (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: SIMULATED
 ok
-test_get_authorizer_with_config_hosted_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: AZURE
+test_get_authorizer_with_config_hosted_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: AZURE
 ok
-test_get_authorizer_with_config_simulated_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: SIMULATED
+test_get_authorizer_with_config_simulated_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: SIMULATED
 ok
-test_get_authorizer_with_config_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: UNKNOWN
+test_get_authorizer_with_config_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: UNKNOWN
 ok
-test_get_logger_azure_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: AZURE
+test_get_logger_azure_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: AZURE
 ok
 test_get_logger_local_provider (test_core.TestCore) ... ok
-test_get_logger_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: UNKNOWN
+test_get_logger_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: UNKNOWN
 ok
-test_get_storage_client_azure_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: AZURE
+test_get_storage_client_azure_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: AZURE
 ok
 test_get_storage_client_local_provider (test_core.TestCore) ... ok
-test_get_storage_client_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: UNKNOWN
+test_get_storage_client_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: UNKNOWN
 ok
-test_get_topic_azure_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: AZURE
+test_get_topic_azure_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: AZURE
 ok
 test_get_topic_local_provider (test_core.TestCore) ... ok
-test_get_topic_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialization core.get_logger for provider: UNKNOWN
+test_get_topic_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: UNKNOWN
 ok
 test_add_request (test_logger.abstract.test_logger_abstract.TestLoggerAbstract) ... ok
 test_debug (test_logger.abstract.test_logger_abstract.TestLoggerAbstract) ... ok

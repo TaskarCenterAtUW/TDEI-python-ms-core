@@ -35,7 +35,7 @@ class TestCore(unittest.TestCase):
         with patch('logging.error') as mock_logging_error:
             logger = core.get_logger()
             mock_logging_error.assert_called_once_with(
-                f'Failed to initialization core.get_logger for provider: {UNKNOWN_ENV}')
+                f'Failed to initialize core.get_logger for provider: {UNKNOWN_ENV}')
 
     def test_get_topic_local_provider(self):
         core = Core(config=LOCAL_ENV)
@@ -57,7 +57,7 @@ class TestCore(unittest.TestCase):
         with patch('logging.error') as mock_logging_error:
             topic = core.get_topic('mock_topic')
             mock_logging_error.assert_called_once_with(
-                f'Failed to initialization core.get_topic for provider: {UNKNOWN_ENV}')
+                f'Failed to initialize core.get_topic for provider: {UNKNOWN_ENV}')
 
     def test_get_storage_client_local_provider(self):
         core = Core(config=LOCAL_ENV)
@@ -78,7 +78,7 @@ class TestCore(unittest.TestCase):
         with patch('logging.error') as mock_logging_error:
             storage_client = core.get_storage_client()
             mock_logging_error.assert_called_once_with(
-                f'Failed to initialization core.get_storage_client for provider: {UNKNOWN_ENV}')
+                f'Failed to initialize core.get_storage_client for provider: {UNKNOWN_ENV}')
 
     def test_get_authorizer_no_config(self):
         core = Core(config=SIMULATED_ENV)
@@ -103,7 +103,7 @@ class TestCore(unittest.TestCase):
         with patch('logging.error') as mock_logging_error:
             authorizer = core.get_authorizer(config=config)
             mock_logging_error.assert_called_once_with(
-                f'Failed to initialization core.get_authorizer for provider: {UNKNOWN_ENV}')
+                f'Failed to initialize core.get_authorizer for provider: {UNKNOWN_ENV}')
 
 
 if __name__ == '__main__':

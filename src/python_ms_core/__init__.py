@@ -25,7 +25,7 @@ class Core:
                 self.__check_health()
             else:
                 self.config = UnknownConfig(provider=config)
-                logging.error(f'Failed to initialization core.get_logger for provider: {config}')
+                logging.error(f'Failed to initialize core.get_logger for provider: {config}')
         else:
             self.config = CoreConfig()
             self.__check_health()
@@ -37,7 +37,7 @@ class Core:
         elif logger_config.provider.upper() == AZURE_ENV:
             return Logger(config=logger_config)
         else:
-            logging.error(f'Failed to initialization core.get_logger for provider: {logger_config.provider}')
+            logging.error(f'Failed to initialize core.get_logger for provider: {logger_config.provider}')
 
     def get_topic(self, topic_name: str):
         topic_config = self.config.topic()
@@ -46,7 +46,7 @@ class Core:
         elif topic_config.provider.upper() == AZURE_ENV:
             return Topic(config=topic_config, topic_name=topic_name)
         else:
-            logging.error(f'Failed to initialization core.get_topic for provider: {topic_config.provider}')
+            logging.error(f'Failed to initialize core.get_topic for provider: {topic_config.provider}')
 
     def get_storage_client(self):
         storage_config = self.config.storage()
@@ -55,7 +55,7 @@ class Core:
         elif storage_config.provider.upper() == AZURE_ENV:
             return AzureStorageClient(storage_config)
         else:
-            logging.error(f'Failed to initialization core.get_storage_client for provider: {storage_config.provider}')
+            logging.error(f'Failed to initialize core.get_storage_client for provider: {storage_config.provider}')
 
     def get_authorizer(self, config: dict = None):
         if config is None:
@@ -69,7 +69,7 @@ class Core:
         elif auth_config.provider.upper() == HOSTED_ENV:
             return HostedAuthorizer(config=auth_config)
         else:
-            logging.error(f'Failed to initialization core.get_authorizer for provider: {auth_config.provider}')
+            logging.error(f'Failed to initialize core.get_authorizer for provider: {auth_config.provider}')
 
     def __check_health(self):
         print('\x1b[32m ------------------------- \x1b[0m')
