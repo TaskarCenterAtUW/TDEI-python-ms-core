@@ -16,7 +16,7 @@ class LocalStorageClient(StorageClient):
         if container_name:
             return LocalStorageContainer(config=self.config, name=container_name)
         else:
-            logging.error(f'Unimplemented initialization for core {self.config.provider}, Container name is required!')
+            logging.error(f'Unimplemented initialize for core {self.config.provider}, Container name is required!')
             return
 
     @ExceptionHandler.decorated

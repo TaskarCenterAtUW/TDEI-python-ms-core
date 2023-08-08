@@ -51,7 +51,7 @@ class LocalTopic(TopicAbstract):
             thread.start()
         else:
             logging.error(
-                f'Unimplemented initialization for core {self.provider.provider}, Subscription name is required!')
+                f'Unimplemented initialize for core {self.provider.provider}, Subscription name is required!')
 
     @ExceptionHandler.decorated
     def publish(self, data=None):

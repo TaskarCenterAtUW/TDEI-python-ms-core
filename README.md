@@ -279,7 +279,7 @@ The project is configured with `python` to figure out the coverage of the unit t
 
    `pip install -r requirements.txt`
 
-   `unittest discover -v tests/unit_tests`
+   `python -m unittest discover -v tests/unit_tests`
  
 - To execute the code coverage, please follow the commands:
 
