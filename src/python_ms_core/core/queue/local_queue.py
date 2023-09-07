@@ -36,3 +36,6 @@ class LocalQueue(QueueAbstract):
 
     def get_items(self):
         return self.queue
+
+    def empty(self):
+        self.queue = list()

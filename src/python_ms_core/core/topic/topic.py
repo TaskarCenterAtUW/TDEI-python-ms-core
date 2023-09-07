@@ -69,7 +69,7 @@ class Topic(TopicAbstract):
             time.sleep(5)
         else:
             logging.error(
-                f'Unimplemented initialization for core {self.provider.provider}, Subscription name is required!')
+                f'Unimplemented initialize for core {self.provider.provider}, Subscription name is required!')
 
     @ExceptionHandler.decorated
     def publish(self, data=None):

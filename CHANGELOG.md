@@ -1,5 +1,10 @@
 # Change log
 
+
+### 0.0.17
+- Added Unit Test Cases
+- Updated Readme file 
+
 ### 0.0.16
 - Removed extra logs
 

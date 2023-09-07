@@ -270,3 +270,218 @@ response = auth_provider.has_permission(request_params=permission_request)
 
 #### How does Simulated authentication work?
 With simulated authentication, the method `has_permission` simply returns the value given in `should_satisfy_all` property in the permission request.
+
+
+### Testing
+
+The project is configured with `python` to figure out the coverage of the unit tests. All the tests are in `tests` folder.
+- To execute the tests, please follow the commands:
+
+   `pip install -r requirements.txt`
+
+   `python -m unittest discover -v tests/unit_tests`
+ 
+- To execute the code coverage, please follow the commands:
+
+    `coverage run --source=src/python_ms_core -m unittest discover -v tests/unit_tests`
+ 
+    `coverage html` // Can be run after 1st  command
+ 
+    `coverage report` // Can be run after 1st  command
+
+- After the commands are run, you can check the coverage report in `htmlcov/index.html`. Open the file in any browser, and it shows complete coverage details
+- The terminal will show the output of coverage like this
+```shell
+
+>  coverage run --source=src/python_ms_core -m unittest discover -v tests/unit_tests
+test_has_permission (test_auth.abstract.test_authorizer_abstraction.TestAuthorizerAbstract) ... ok
+test_get_search_params (test_auth.models.test_permission_request.TestPermissionRequest) ... ok
+test_has_permission_with_invalid_permissions (test_auth.provider.test_hosted_authorizer.TestHostedAuthorizer) ... ok
+test_has_permission_with_missing_auth_url (test_auth.provider.test_hosted_authorizer.TestHostedAuthorizer) ... ok
+test_has_permission_with_valid_permissions (test_auth.provider.test_hosted_authorizer.TestHostedAuthorizer) ... ok
+test_has_permission_should_return_should_satisfy_all (test_auth.provider.test_simulated_authorizer.TestSimulatedAuthorizer) ... ok
+test_has_permission_should_return_should_satisfy_none (test_auth.provider.test_simulated_authorizer.TestSimulatedAuthorizer) ... ok
+test_core_config_auth (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_auth_url (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_auth_url_default (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_logger (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_provider (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_provider_default (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_provider_override (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_queue (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_queue_connection (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_queue_connection_default (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_queue_name (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_queue_name_default (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_storage (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_storage_connection (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_storage_connection_default (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_topic (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_topic_connection (test_config.test_cofig.TestCoreConfig) ... ok
+test_core_config_topic_connection_default (test_config.test_cofig.TestCoreConfig) ... ok
+test_local_config_auth (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_logger (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_provider (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_provider_default (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_queue (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_queue_connection (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_queue_connection_default (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_queue_name (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_queue_name_default (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_storage (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_storage_connection (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_storage_connection_default (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_topic (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_topic_connection (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_topic_connection_default (test_config.test_cofig.TestLocalConfig) ... ok
+test_local_config_auth (test_config.test_cofig.TestUnknownConfig) ... ok
+test_unknown_config_logger (test_config.test_cofig.TestUnknownConfig) ... ok
+test_unknown_config_provider (test_config.test_cofig.TestUnknownConfig) ... ok
+test_unknown_config_queue (test_config.test_cofig.TestUnknownConfig) ... ok
+test_unknown_config_queue_connection_default (test_config.test_cofig.TestUnknownConfig) ... ok
+test_unknown_config_queue_name_default (test_config.test_cofig.TestUnknownConfig) ... ok
+test_unknown_config_storage (test_config.test_cofig.TestUnknownConfig) ... ok
+test_unknown_config_storage_connection_default (test_config.test_cofig.TestUnknownConfig) ... ok
+test_unknown_config_topic (test_config.test_cofig.TestUnknownConfig) ... ok
+test_unknown_config_topic_connection_default (test_config.test_cofig.TestUnknownConfig) ... ok
+test_get_authorizer_no_config (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: SIMULATED
+ok
+test_get_authorizer_with_config_hosted_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: AZURE
+ok
+test_get_authorizer_with_config_simulated_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: SIMULATED
+ok
+test_get_authorizer_with_config_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: UNKNOWN
+ok
+test_get_logger_azure_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: AZURE
+ok
+test_get_logger_local_provider (test_core.TestCore) ... ok
+test_get_logger_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: UNKNOWN
+ok
+test_get_storage_client_azure_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: AZURE
+ok
+test_get_storage_client_local_provider (test_core.TestCore) ... ok
+test_get_storage_client_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: UNKNOWN
+ok
+test_get_topic_azure_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: AZURE
+ok
+test_get_topic_local_provider (test_core.TestCore) ... ok
+test_get_topic_unknown_provider (test_core.TestCore) ... 2023-07-03 18:07:41 ERROR    Failed to initialize core.get_logger for provider: UNKNOWN
+ok
+test_add_request (test_logger.abstract.test_logger_abstract.TestLoggerAbstract) ... ok
+test_debug (test_logger.abstract.test_logger_abstract.TestLoggerAbstract) ... ok
+test_error (test_logger.abstract.test_logger_abstract.TestLoggerAbstract) ... ok
+test_info (test_logger.abstract.test_logger_abstract.TestLoggerAbstract) ... ok
+test_record_metric (test_logger.abstract.test_logger_abstract.TestLoggerAbstract) ... ok
+test_warn (test_logger.abstract.test_logger_abstract.TestLoggerAbstract) ... ok
+test_add_request (test_logger.test_local_logger.TestLocalLogger) ... ok
+test_debug (test_logger.test_local_logger.TestLocalLogger) ... ok
+test_error (test_logger.test_local_logger.TestLocalLogger) ... ok
+test_info (test_logger.test_local_logger.TestLocalLogger) ... ok
+test_record_metric (test_logger.test_local_logger.TestLocalLogger) ... ok
+test_warn (test_logger.test_local_logger.TestLocalLogger) ... ok
+test_add_request (test_logger.test_logger.TestLogger) ... ok
+test_debug (test_logger.test_logger.TestLogger) ... ok
+test_error (test_logger.test_logger.TestLogger) ... ok
+test_info (test_logger.test_logger.TestLogger) ... ok
+test_record_metric (test_logger.test_logger.TestLogger) ... ok
+test_warn (test_logger.test_logger.TestLogger) ... ok
+test_concrete_queue_has_abstract_methods_implemented (test_queue.abstract.test_queue_abstract.TestQueueAbstract) ... ok
+test_concrete_queue_inherits_from_queue_abstract (test_queue.abstract.test_queue_abstract.TestQueueAbstract) ... ok
+test_azure_provider_invalid_connection_string (test_queue.config.test_queue_config.TestConfig) ... ok
+test_azure_provider_missing_queue_name (test_queue.config.test_queue_config.TestConfig) ... ok
+test_azure_provider_valid_connection_string (test_queue.config.test_queue_config.TestConfig) ... ok
+test_non_azure_provider (test_queue.config.test_queue_config.TestConfig) ... ok
+test_add_message_to_queue (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_add_message_to_queue_no_data (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_data_from_invalid_string (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_data_from_valid_string (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_get_items (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_remove_message_from_empty_queue (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_remove_message_from_queue (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_send_queue (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_to_dict (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_validate_data (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_validate_data_invalid_type (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_validate_string (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_validate_string_invalid_type (test_queue.models.test_queue_message.QueueMessageTestCase) ... ok
+test_add_message_to_queue (test_queue.test_local_queue.TestLocalQueue) ... ok
+test_add_message_to_queue_with_no_data (test_queue.test_local_queue.TestLocalQueue) ... ok
+test_empty_queue (test_queue.test_local_queue.TestLocalQueue) ... ok
+test_get_items_from_queue (test_queue.test_local_queue.TestLocalQueue) ... ok
+test_remove_message_from_queue (test_queue.test_local_queue.TestLocalQueue) ... ok
+test_send_with_data (test_queue.test_local_queue.TestLocalQueue) ... 200
+ok
+test_send_without_data (test_queue.test_local_queue.TestLocalQueue) ... ok
+test_add (test_queue.test_queue.TestQueue) ... ok
+test_add_no_data (test_queue.test_queue.TestQueue) ... ok
+test_empty (test_queue.test_queue.TestQueue) ... ok
+test_get_items (test_queue.test_queue.TestQueue) ... ok
+test_remove (test_queue.test_queue.TestQueue) ... ok
+test_send_no_data (test_queue.test_queue.TestQueue) ... ok
+test_send_with_data (test_queue.test_queue.TestQueue) ... ok
+test_bad_request_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_conflict_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_forbidden_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_internal_server_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_not_found_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_service_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_timeout_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_too_many_request_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_unauthorized_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_unprocessable_error (test_resource_errors.test_errors.TestServiceErrors) ... ok
+test_get_body_text (test_storage.abstract.test_file_entity.TestFileEntity) ... ok
+test_get_remote_url (test_storage.abstract.test_file_entity.TestFileEntity) ... ok
+test_get_stream (test_storage.abstract.test_file_entity.TestFileEntity) ... ok
+test_init (test_storage.abstract.test_file_entity.TestFileEntity) ... ok
+test_upload (test_storage.abstract.test_file_entity.TestFileEntity) ... ok
+test_get_container (test_storage.abstract.test_storage_client.TestStorageClient) ... ok
+test_get_file (test_storage.abstract.test_storage_client.TestStorageClient) ... ok
+test_get_file_from_url (test_storage.abstract.test_storage_client.TestStorageClient) ... ok
+test_create_file (test_storage.abstract.test_storage_container.TestStorageContainer) ... ok
+test_init (test_storage.abstract.test_storage_container.TestStorageContainer) ... ok
+test_list_files (test_storage.abstract.test_storage_container.TestStorageContainer) ... ok
+test_azure_provider_invalid_connection_string (test_storage.config.test_storage_config.TestConfig) ... ok
+test_azure_provider_missing_queue_name (test_storage.config.test_storage_config.TestConfig) ... ok
+test_azure_provider_valid_connection_string (test_storage.config.test_storage_config.TestConfig) ... ok
+test_non_azure_provider (test_storage.config.test_storage_config.TestConfig) ... ok
+test_default_method (test_storage.models.test_config.TestCoreConfig) ... ok
+test_init_with_custom_provider (test_storage.models.test_config.TestCoreConfig) ... ok
+test_init_with_default_provider (test_storage.models.test_config.TestCoreConfig) ... ok
+test_get_body_text (test_storage.test_azure_file_entity.TestAzureFileEntity) ... ok
+test_get_remote_url (test_storage.test_azure_file_entity.TestAzureFileEntity) ... ok
+test_get_stream (test_storage.test_azure_file_entity.TestAzureFileEntity) ... ok
+test_upload (test_storage.test_azure_file_entity.TestAzureFileEntity) ... ok
+test_get_container (test_storage.test_azure_storage_client.TestAzureStorageClient) ... ok
+test_get_file (test_storage.test_azure_storage_client.TestAzureStorageClient) ... ok
+test_get_file_from_url (test_storage.test_azure_storage_client.TestAzureStorageClient) ... ok
+test_create_file (test_storage.test_azure_storage_container.TestAzureStorageContainer) ... ok
+test_list_files (test_storage.test_azure_storage_container.TestAzureStorageContainer) ... ok
+test_list_files_with_name_starts_with (test_storage.test_azure_storage_container.TestAzureStorageContainer) ... ok
+test_get_body_text (test_storage.test_local_file_entity.TestLocalFileEntity) ... ok
+test_get_remote_url (test_storage.test_local_file_entity.TestLocalFileEntity) ... ok
+test_get_stream (test_storage.test_local_file_entity.TestLocalFileEntity) ... ok
+test_upload (test_storage.test_local_file_entity.TestLocalFileEntity) ... ok
+test_get_container (test_storage.test_local_storage_client.TestLocalStorageClient) ... ok
+test_get_container_without_name (test_storage.test_local_storage_client.TestLocalStorageClient) ... ok
+test_get_file (test_storage.test_local_storage_client.TestLocalStorageClient) ... ok
+test_get_file_from_url (test_storage.test_local_storage_client.TestLocalStorageClient) ... ok
+test_create_file (test_storage.test_local_storage_container.LocalStorageContainerTests) ... ok
+test_list_files (test_storage.test_local_storage_container.LocalStorageContainerTests) ... ok
+test_init (test_topic.abstract.test_topic_abstract.TestDerivedTopic) ... ok
+test_publish (test_topic.abstract.test_topic_abstract.TestDerivedTopic) ... ok
+test_subscribe (test_topic.abstract.test_topic_abstract.TestDerivedTopic) ... ok
+test_azure_provider_invalid_connection_string (test_topic.config.test_topic_config.TestConfig) ... ok
+test_azure_provider_logging_levels (test_topic.config.test_topic_config.TestConfig) ... ok
+test_azure_provider_valid_connection_string (test_topic.config.test_topic_config.TestConfig) ... ok
+test_non_azure_provider (test_topic.config.test_topic_config.TestConfig) ... ok
+test_sender_creation (test_topic.config.test_topic_config.TestConfig) ... ok
+test_publish (test_topic.test_local_topic.TestLocalTopic) ... ok
+test_subscribe_with_subscription (test_topic.test_local_topic.TestLocalTopic) ... ok
+test_publish (test_topic.test_topic.TestTopic) ... ok
+test_subscribe_with_subscription (test_topic.test_topic.TestTopic) ... ok
+
+----------------------------------------------------------------------
+Ran 174 tests in 8.175s
+
+OK
+```

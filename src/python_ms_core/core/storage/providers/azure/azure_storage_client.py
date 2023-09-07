@@ -20,7 +20,7 @@ class AzureStorageClient(storage_client.StorageClient):
             client_container = self._blob_service_client.get_container_client(container_name)
             return azure_storage_container.AzureStorageContainer(container_name, client_container)
         else:
-            logging.error(f'Unimplemented initialization for core {self.config.provider}, Container name is required!')
+            logging.error(f'Unimplemented initialize for core {self.config.provider}, Container name is required!')
             return
 
     @ExceptionHandler.decorated
