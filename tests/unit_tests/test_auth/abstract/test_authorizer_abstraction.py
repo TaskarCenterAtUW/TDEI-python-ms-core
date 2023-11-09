@@ -10,7 +10,7 @@ class TestAuthorizerAbstract(unittest.TestCase):
         # Create a mock PermissionRequest object
         request_params = PermissionRequest(
             user_id='SOME_USER_ID',
-            org_id='SOME_ORG_ID',
+            project_group_id='SOME_PROJECT_GROUP_ID',
             should_satisfy_all=False,
             permissions=['poc']
         )
