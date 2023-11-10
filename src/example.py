@@ -79,7 +79,7 @@ subscribe(topic, subscription)
 
 # permission_params = PermissionRequest(
 #     user_id='7961d767-a352-464f-95b6-cd1c5189a93c',
-#     org_id='5e339544-3b12-40a5-8acd-78c66d1fa981',
+#     project_group__id='5e339544-3b12-40a5-8acd-78c66d1fa981',
 #     should_satisfy_all=False,
 #     permissions=['poc']
 # )

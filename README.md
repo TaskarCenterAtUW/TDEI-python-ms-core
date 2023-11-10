@@ -204,7 +204,7 @@ from python_ms_core.core.auth.models.permission_request import PermissionRequest
 
 permission_request = PermissionRequest(
     user_id='<userID>',
-    org_id='<orgID>',
+    project_group_id='<projectGroupID>',
     should_satisfy_all=False,
     permissions=['permission1', 'permission2']
 )
@@ -252,7 +252,7 @@ core = Core()
 
 permission_request = PermissionRequest(
     user_id='<userID>',
-    org_id='<orgID>',
+    project_group_id='<projectGroupID>',
     should_satisfy_all=False,
     permissions=['permission1', 'permission2']
 )

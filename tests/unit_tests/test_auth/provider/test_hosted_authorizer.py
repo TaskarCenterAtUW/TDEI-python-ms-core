@@ -13,11 +13,11 @@ class TestHostedAuthorizer(unittest.TestCase):
         config.auth_url = 'https://example.com/api/auth'
 
         user_id = '123'
-        org_id = '456'
+        project_group_id = '456'
         permissions = ['poc']
         should_satisfy_all = True
 
-        request_params = PermissionRequest(user_id, org_id, permissions, should_satisfy_all)
+        request_params = PermissionRequest(user_id, project_group_id, permissions, should_satisfy_all)
 
         authorizer = HostedAuthorizer(config)
         response_data = {'status': 'success'}
@@ -32,11 +32,11 @@ class TestHostedAuthorizer(unittest.TestCase):
         config.auth_url = 'https://example.com/api/auth'
 
         user_id = '123'
-        org_id = '456'
+        project_group_id = '456'
         permissions = []
         should_satisfy_all = True
 
-        request_params = PermissionRequest(user_id, org_id, permissions, should_satisfy_all)
+        request_params = PermissionRequest(user_id, project_group_id, permissions, should_satisfy_all)
 
         authorizer = HostedAuthorizer(config)
 
@@ -51,11 +51,11 @@ class TestHostedAuthorizer(unittest.TestCase):
         config.auth_url = ''
 
         user_id = '123'
-        org_id = '456'
+        project_group_id = '456'
         permissions = ['poc']
         should_satisfy_all = True
 
-        request_params = PermissionRequest(user_id, org_id, permissions, should_satisfy_all)
+        request_params = PermissionRequest(user_id, project_group_id, permissions, should_satisfy_all)
 
         authorizer = HostedAuthorizer(config)
 
