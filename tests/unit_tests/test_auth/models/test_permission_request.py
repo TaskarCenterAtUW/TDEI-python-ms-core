@@ -15,7 +15,7 @@ class TestPermissionRequest(unittest.TestCase):
 
         expected_params = {
             'userId': user_id,
-            'agencyId': project_group_id,
+            'projectGroupId': project_group_id,
             'affirmative': 'true',
             'roles': permissions
         }

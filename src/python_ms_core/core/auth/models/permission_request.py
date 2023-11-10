@@ -51,7 +51,7 @@ class PermissionRequest:
         affirmative = 'true' if self._should_satisfy_all else 'false'
         params = {
             'userId': self._user_id,
-            'agencyId': self.project_group_id,
+            'projectGroupId': self.project_group_id,
             'affirmative': affirmative
         }
         if self._permissions and len(self._permissions) > 0:
