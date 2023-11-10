@@ -5,13 +5,13 @@ from dataclasses import dataclass
 @dataclass
 class PermissionRequest:
     user_id: str
-    org_id: str
+    project_group_id: str
     permissions: Optional[str] = None
     should_satisfy_all: bool = False
 
-    def __init__(self, user_id: str, org_id: str, permissions: Optional[str] = None, should_satisfy_all: bool = False):
+    def __init__(self, user_id: str, project_group_id: str, permissions: Optional[str] = None, should_satisfy_all: bool = False):
         self._user_id = user_id
-        self._org_id = org_id
+        self._project_group_id = project_group_id
         self._permissions = permissions
         self._should_satisfy_all = should_satisfy_all
 
@@ -24,12 +24,12 @@ class PermissionRequest:
         self._user_id = value
 
     @property
-    def org_id(self):
-        return self._org_id
+    def project_group_id(self):
+        return self._project_group_id
 
-    @org_id.setter
-    def org_id(self, value):
-        self._org_id = value
+    @project_group_id.setter
+    def project_group_id(self, value):
+        self.project_group_id = value
 
     @property
     def permissions(self):
@@ -51,7 +51,7 @@ class PermissionRequest:
         affirmative = 'true' if self._should_satisfy_all else 'false'
         params = {
             'userId': self._user_id,
-            'agencyId': self._org_id,
+            'projectGroupId': self.project_group_id,
             'affirmative': affirmative
         }
         if self._permissions and len(self._permissions) > 0:

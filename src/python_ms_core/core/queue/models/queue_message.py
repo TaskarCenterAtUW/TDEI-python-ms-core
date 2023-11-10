@@ -22,14 +22,15 @@ class QueueMessage(Validations):
     data: Union[dict, List[dict]] = dict
     queue = list()
 
-    @staticmethod
     def add(self, data=None):
         if data is not None:
             self.queue.insert(0, json.dumps(data))
             return True
         return False
 
-    @staticmethod
+    def empty(self):
+        self.queue = list()
+
     def remove(self):
         if len(self.queue) > 0:
             self.queue.pop()
@@ -40,7 +41,7 @@ class QueueMessage(Validations):
         return True
 
     def get_items(self):
-        return self.queue
+        return [json.loads(item) for item in self.queue]
 
     @ExceptionHandler.decorated
     def data_from(self):
