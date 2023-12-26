@@ -22,7 +22,7 @@ class AzureFileEntity(file_entity.FileEntity):
     @ExceptionHandler.decorated
     def upload(self, upload_stream):
         # Infer the content type here or at the place where upload is happening
-        upload_file = self.blob_client.upload_blob(self.file_path, upload_stream)
+        upload_file = self.blob_client.upload_blob(self.file_path, upload_stream,overwrite=True)
         self._get_remote_url = upload_file.url
 
     @ExceptionHandler.decorated
