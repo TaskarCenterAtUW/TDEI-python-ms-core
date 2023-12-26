@@ -41,7 +41,7 @@ class Callback:
     def start_listening(self, provider, topic, subscription):
         with provider.client: # service bus client
             while True:
-                logger.info('Initiatig receiver')
+                logger.info('Initiating receiver')
                 topic_receiver = provider.client.get_subscription_receiver(topic, subscription_name=subscription) # servicebusclientsubscriptionreceiver
                 with topic_receiver:
                     for message in topic_receiver:
@@ -66,7 +66,7 @@ class Topic(TopicAbstract):
             cb = Callback(callback)
             thread = threading.Thread(target=cb.start_listening, args=(self.provider, self.topic, subscription))
             thread.start()
-            time.sleep(5)
+            time.sleep(3) # Dont wait 5 seconds
         else:
             logging.error(
                 f'Unimplemented initialize for core {self.provider.provider}, Subscription name is required!')

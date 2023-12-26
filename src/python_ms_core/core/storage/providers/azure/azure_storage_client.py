@@ -1,9 +1,11 @@
 import logging
 import urllib.parse
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient, BlobSasPermissions, generate_blob_sas
 from . import azure_file_entity, azure_storage_container
 from ...abstract import storage_client
 from ....resource_errors import ExceptionHandler
+from datetime import datetime, timedelta
+
 
 
 class AzureStorageClient(storage_client.StorageClient):
@@ -40,3 +42,36 @@ class AzureStorageClient(storage_client.StorageClient):
             if file_info.file_path == path:
                 file = file_info
         return file
+
+    @ExceptionHandler.decorated
+    def get_downloadable_url(self, full_url: str):
+        # Get the path from the url
+        unquoted_full_url = urllib.parse.unquote(full_url)
+        remote_file_url = urllib.parse.urlparse(unquoted_full_url)
+        # Get the container name from the url
+        splits = remote_file_url.path.split('/')
+        container_name = splits[1] # Gets the container name
+        path = '/'.join(urllib.parse.unquote(full_url).split('/')[4:]) # Get the blob name
+        sas_token = self._generate_sas_token(container_name=container_name, blobName=path)
+
+        return  full_url+'?'+sas_token
+    
+    # Internal method to generate SAS token
+    # This does not guarantee result if the file is not there 
+    # in the path specified
+
+    def _generate_sas_token(self, container_name:str, blobName:str):
+        #  Permissions
+        permissions = BlobSasPermissions(read=True)
+        expiration_time = datetime.utcnow() + timedelta(days=1) # Expiration is 1 day
+
+        sas_token = generate_blob_sas(
+            self._blob_service_client.account_name,
+            container_name,
+            blobName,
+            account_key=self._blob_service_client.credential.account_key,
+            permission=permissions,
+            expiry=expiration_time
+        )
+
+        return sas_token

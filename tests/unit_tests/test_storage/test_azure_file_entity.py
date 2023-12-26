@@ -56,7 +56,7 @@ class TestAzureFileEntity(unittest.TestCase):
 
         # Assert the result
         self.assertEqual(file_entity._get_remote_url, 'http://example.com/file')
-        self.blob_client.upload_blob.assert_called_once_with(file_entity.file_path, upload_stream)
+        self.blob_client.upload_blob.assert_called_once_with(file_entity.file_path, upload_stream,overwrite=True)
 
     def test_get_remote_url(self):
         # Create an instance of the AzureFileEntity
