@@ -33,3 +33,14 @@ class LocalStorageClient(StorageClient):
             if file_info.path == path:
                 file = file_info
         return file
+    
+    @ExceptionHandler.decorated
+    def get_downloadable_url(self, full_url: str):
+        path = '/'.join(urllib.parse.unquote(full_url).split('/')[5:])
+        file = LocalFileEntity
+        client = LocalStorageContainer(config=self.config, name=container_name)
+        files = client.list_files()
+        for file_info in files:
+            if file_info.path == path:
+                file = file_info
+        return file.get_remote_url()

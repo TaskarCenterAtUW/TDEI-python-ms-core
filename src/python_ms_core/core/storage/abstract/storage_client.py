@@ -11,3 +11,6 @@ class StorageClient(ABC):
     @abstractmethod
     def get_file_from_url(self, container_name: str, full_url: str): pass
 
+    @abstractmethod
+    def get_downloadable_url(self, full_url:str): pass
+
