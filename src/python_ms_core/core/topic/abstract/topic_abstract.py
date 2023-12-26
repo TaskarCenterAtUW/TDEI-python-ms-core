@@ -10,3 +10,6 @@ class TopicAbstract(ABC):
 
     @abstractmethod
     def publish(self, data=None): pass
+
+    @abstractmethod
+    def unsubscribe(self,subscription=None):pass

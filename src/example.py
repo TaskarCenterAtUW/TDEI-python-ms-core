@@ -14,7 +14,7 @@ from python_ms_core.core.auth.models.permission_request import PermissionRequest
 core = Core()
 print('Hello')
 
-topic = 'gtfs-pathways-upload'
+topic = 'temp-upload'
 subscription = 'log'
 some_other_sub = 'usdufs'
 
@@ -32,6 +32,7 @@ def publish_messages(topic_name):
 def subscribe(topic_name, subscription_name):
     def process(message):
         print(f'Message Received: {message}')
+        topic_object.unsubscribe('log')
         # Spawn and thread process it -> 1 hr no issues
         # return
 
@@ -43,6 +44,8 @@ def subscribe(topic_name, subscription_name):
 
 
 subscribe(topic, subscription)
+
+publish_messages(topic)
 
 # azure_client = core.get_storage_client()
 
