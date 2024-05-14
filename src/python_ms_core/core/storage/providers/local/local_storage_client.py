@@ -33,3 +33,7 @@ class LocalStorageClient(StorageClient):
             if file_info.path == path:
                 file = file_info
         return file
+
+    @ExceptionHandler.decorated
+    def get_sas_url(self, container_name: str, file_path: str, expiry_hours: int) -> str:
+        return self.get_file_from_url(container_name, file_path).get_remote_url()
