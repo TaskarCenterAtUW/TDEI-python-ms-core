@@ -1,5 +1,9 @@
 # Change log
 
+# 0.0.18
+- Adds extra checks in service bus for retries
+- Additional logging done if there is no network and  service bus crashes
+- Service bus subscription picks up messages even if there is network outtage
 
 ### 0.0.17
 - Added Unit Test Cases

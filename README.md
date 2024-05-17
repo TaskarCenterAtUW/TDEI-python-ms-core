@@ -239,7 +239,7 @@ In case `api_url` is not provided for `Hosted` auth provider, the core will pick
 
 #### Requesting if certain permission is valid:
 
-Use the method `has_ermission(request_params)` to know if the permission request is valid/not.
+Use the method `has_permission(request_params)` to know if the permission request is valid/not.
 
 ```python
 

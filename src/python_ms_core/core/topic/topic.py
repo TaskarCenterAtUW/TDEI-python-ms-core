@@ -40,17 +40,21 @@ class Callback:
     # Starts listening to the messages
     def start_listening(self, provider, topic, subscription):
         with provider.client: # service bus client
-            while True:
-                logger.info('Initiatig receiver')
-                topic_receiver = provider.client.get_subscription_receiver(topic, subscription_name=subscription) # servicebusclientsubscriptionreceiver
-                with topic_receiver:
-                    for message in topic_receiver:
-                        try:
-                            self.process_message(message=str(message)) # sync call. [By default 1minute ] -> lock renewal for 300 seconds
-                        except Exception as e:
-                            print(f'Error : {e}, Invalid message received : {message}')
-                        finally:
-                            topic_receiver.complete_message(message)
+            logger.info('Initiating receiver')
+            topic_receiver = provider.client.get_subscription_receiver(topic, subscription_name=subscription) # servicebusclientsubscriptionreceiver
+            logger.info('Done')
+            with topic_receiver:
+                while True:
+                    try:
+                        for message in topic_receiver:
+                            try:
+                                self.process_message(message=str(message)) # sync call. [By default 1minute ] -> lock renewal for 300 seconds
+                            except Exception as e:
+                                print(f'Error : {e}, Invalid message received : {message}')
+                            finally:
+                                topic_receiver.complete_message(message)
+                    except Exception as et:
+                        print(f'Error in service bus connection : {et}')
                         # Change mode from PEEK_LOCK to RECEIVE_AND_DELETE
                 logger.info('Topic receiver invalidated')
 
