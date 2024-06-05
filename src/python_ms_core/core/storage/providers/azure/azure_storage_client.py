@@ -97,3 +97,35 @@ class AzureStorageClient(storage_client.StorageClient):
             )
             sas_url = f"https://{self._blob_service_client.account_name}.blob.core.windows.net/{container_name}/{file_path}?{sas_token}"
             return sas_url
+    
+    def get_container_info(self, file_url:str):
+        """
+        Retrieves the container name and file path from a file URL.
+
+        Args:
+            file_url (str): The URL of the file.
+
+        Returns:
+            tuple: A tuple containing the container name and file path.
+        """
+        container_name = file_url.split('/')[3]
+        file_path = '/'.join(file_url.split('/')[4:])
+        return container_name, file_path
+    
+
+    def clone_file(self, file_url:str, destination_container_name:str, destination_file_path:str):
+        """
+        Clones a file from one container to another.
+
+        Args:
+            file_url (str): The URL of the file to clone.
+            destination_container_name (str): The name of the destination container.
+            destination_file_path (str): The path of the destination file.
+        """
+        source_container_name, source_file_path = self.get_container_info(file_url)
+        source_container = self._blob_service_client.get_container_client(source_container_name)
+        source_blob = source_container.get_blob_client(source_file_path)
+        destination_container = self._blob_service_client.get_container_client(destination_container_name)
+        destination_blob = destination_container.get_blob_client(destination_file_path)
+        destination_blob.start_copy_from_url(source_blob.url)
+        return destination_blob

@@ -21,6 +21,9 @@ class MockFileEntity(FileEntity):
     def get_remote_url(self):
         # Mock implementation for getting the remote URL
         return 'http://example.com/file.txt'
+    def delete_file(self):
+        # Mock implementation for deleting the file
+        pass
 
 
 class TestFileEntity(unittest.TestCase):
