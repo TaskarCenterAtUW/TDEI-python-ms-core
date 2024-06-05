@@ -34,3 +34,8 @@ class LocalFileEntity(FileEntity):
     @ExceptionHandler.decorated
     def get_remote_url(self):
         return self._get_remote_url
+
+    @ExceptionHandler.decorated
+    def delete_file(self):
+        delete_relative_path = f'{self.config.connection_string}{self.download_path}{self.path}'
+        pass

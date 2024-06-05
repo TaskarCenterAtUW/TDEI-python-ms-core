@@ -26,3 +26,7 @@ class FileEntity(ABC):
     @abstractmethod
     def get_remote_url(self):
         pass
+    
+    @abstractmethod
+    def delete_file(self):
+        pass
