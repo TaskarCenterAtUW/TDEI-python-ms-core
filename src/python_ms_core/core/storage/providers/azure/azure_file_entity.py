@@ -27,3 +27,7 @@ class AzureFileEntity(file_entity.FileEntity):
     @ExceptionHandler.decorated
     def get_remote_url(self):
         return self._get_remote_url
+    
+    @ExceptionHandler.decorated
+    def delete_file(self):
+        self.blob_client.delete_blob()
