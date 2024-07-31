@@ -8,6 +8,7 @@ from .core.storage.providers.local.local_storage_client import LocalStorageClien
 from .core.auth.provider.hosted.hosted_authorizer import HostedAuthorizer
 from .core.auth.provider.simulated.simulated_authorizer import SimulatedAuthorizer
 from .core.config.config import CoreConfig, LocalConfig, AuthConfig, UnknownConfig
+from .version import __version__
 
 LOCAL_ENV = 'LOCAL'
 AZURE_ENV = 'AZURE'
@@ -30,6 +31,9 @@ class Core:
             self.config = CoreConfig()
             self.__check_health()
 
+    def __version__(self):
+        return
+
     def get_logger(self):
         logger_config = self.config.logger()
         if logger_config.provider.upper() == LOCAL_ENV:
@@ -39,12 +43,12 @@ class Core:
         else:
             logging.error(f'Failed to initialize core.get_logger for provider: {logger_config.provider}')
 
-    def get_topic(self, topic_name: str):
+    def get_topic(self, topic_name: str, max_concurrent_messages=1):
         topic_config = self.config.topic()
         if topic_config.provider.upper() == LOCAL_ENV:
             return LocalTopic(config=topic_config, topic_name=topic_name)
         elif topic_config.provider.upper() == AZURE_ENV:
-            return Topic(config=topic_config, topic_name=topic_name)
+            return Topic(config=topic_config, topic_name=topic_name, max_concurrent_messages=max_concurrent_messages)
         else:
             logging.error(f'Failed to initialize core.get_topic for provider: {topic_config.provider}')
 
@@ -114,3 +118,6 @@ class Core:
             print('\x1b[32m Logger configured \x1b[0m')
         print('\x1b[32m ------------------------- \x1b[0m')
         return True
+
+
+Core.__version__ = __version__

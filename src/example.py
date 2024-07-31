@@ -11,9 +11,10 @@ from python_ms_core import Core
 from python_ms_core.core.queue.models.queue_message import QueueMessage
 from python_ms_core.core.auth.models.permission_request import PermissionRequest
 
-core = Core()
-print('Hello')
 
+
+core = Core()
+print(f'Core version: {Core.__version__}')
 topic = 'gtfs-pathways-upload'
 subscription = 'log'
 some_other_sub = 'usdufs'
@@ -42,7 +43,7 @@ def subscribe(topic_name, subscription_name):
         print(e)
 
 
-subscribe(topic, subscription)
+# subscribe(topic, subscription)
 
 # azure_client = core.get_storage_client()
 

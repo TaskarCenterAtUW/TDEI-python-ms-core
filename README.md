@@ -25,6 +25,9 @@ Eg.
 ```python
 from python_ms_core import Core
 core = Core() or Core(config='Local')
+
+# To check the package version
+Core.__version__ # 0.0.21
 ```
 The method analyzes the `.env` variables and does a health check on what components are available
 
@@ -293,7 +296,7 @@ The project is configured with `python` to figure out the coverage of the unit t
 - The terminal will show the output of coverage like this
 ```shell
 
->  coverage run --source=src/python_ms_core -m unittest discover -v tests/unit_tests
+>  python -m coverage run --source=src/python_ms_core -m unittest discover -v tests/unit_tests
 test_has_permission (test_auth.abstract.test_authorizer_abstraction.TestAuthorizerAbstract) ... ok
 test_get_search_params (test_auth.models.test_permission_request.TestPermissionRequest) ... ok
 test_has_permission_with_invalid_permissions (test_auth.provider.test_hosted_authorizer.TestHostedAuthorizer) ... ok

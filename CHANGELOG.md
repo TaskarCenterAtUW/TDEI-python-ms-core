@@ -1,5 +1,11 @@
 # Change log
 
+# 0.0.21
+- Introduced renew message lock, which ensures that message is alive while processing and not returned to the queue to be reprocessed.  
+- Added max concurrent messages login which can handle multiple requests at once  
+- Added version.py file to maintain the package version
+- Updated readme
+
 # 0.0.18
 - Adds extra checks in service bus for retries
 - Additional logging done if there is no network and  service bus crashes
