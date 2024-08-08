@@ -48,7 +48,7 @@ def subscribe(topic_name, subscription_name):
         print(e)
 
 
-# subscribe(topic, subscription)
+subscribe(topic, subscription)
 # for x in range(10):
 #     publish_messages(topic_name=topic)
 
