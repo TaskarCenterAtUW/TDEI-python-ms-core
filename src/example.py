@@ -24,6 +24,7 @@ def publish_messages(topic_name):
     topic_object.publish(data=queue_message)
     print('Message Published')
 
+
 def long_running_task(sleep_time):
     # Simulate a long-running task
     time.sleep(sleep_time)
