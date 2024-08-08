@@ -1,3 +1,4 @@
+import os
 import logging
 from .core.logger.logger import Logger
 from .core.logger.local_logger import LocalLogger
@@ -43,7 +44,7 @@ class Core:
         else:
             logging.error(f'Failed to initialize core.get_logger for provider: {logger_config.provider}')
 
-    def get_topic(self, topic_name: str, max_concurrent_messages=1):
+    def get_topic(self, topic_name: str, max_concurrent_messages=os.cpu_count()):
         topic_config = self.config.topic()
         if topic_config.provider.upper() == LOCAL_ENV:
             return LocalTopic(config=topic_config, topic_name=topic_name)

@@ -16,11 +16,11 @@ class Callback:
     def __init__(self, fn=None, max_concurrent_messages=1):
         self._function_to_call = fn
         self._max_concurrent_messages = max_concurrent_messages
-        self._stop_event = threading.Event()
-        self._renewal_interval = 10  # seconds
+        self._renewal_interval = 30  # seconds
+        self.message_processing = 0
 
     def _renew_message_lock(self, message, receiver):
-        while not self._stop_event.is_set():
+        while True:
             try:
                 time.sleep(self._renewal_interval)
                 if not message._lock_expired:
@@ -28,27 +28,16 @@ class Callback:
             except Exception as e:
                 break
 
-    # old method to fetch messages. Not used anymore
-    def messages(self, provider, topic, subscription):
-        with provider.client:
-            topic_receiver = provider.client.get_subscription_receiver(topic, subscription_name=subscription)
-            logger.info(f'Started receiver for {subscription}')
-            with topic_receiver:
-                for message in topic_receiver:
-                    try:
-                        queue_message = QueueMessage.data_from(str(message))
-                        self._function_to_call(queue_message)
-                    except Exception as e:
-                        print(f'Error: {e}, Invalid message received: {message}')
-                    finally:
-                        topic_receiver.complete_message(message)
-            logger.info('Completed topic receiver')
-    
     # Sends data to the callback function
     def process_message(self, message, receiver):
         queue_message = QueueMessage.data_from(str(message))
+        if not message._lock_expired:
+            lock_renewal_thread = threading.Thread(
+                target=self._renew_message_lock,
+                args=(message, receiver)
+            )
+            lock_renewal_thread.start()
         self._function_to_call(queue_message)
-        receiver.complete_message(message)
 
     # Starts listening to the messages
     def start_listening(self, provider, topic, subscription):
@@ -61,34 +50,38 @@ class Callback:
             logger.info('Receiver started')
             with topic_receiver:
                 while True:
-                    try:
-                        messages = topic_receiver.receive_messages(
-                            max_message_count=self._max_concurrent_messages,
-                            max_wait_time=5
-                        )
-                        if not messages:
-                            continue
-
-                        for message in messages:
-                            stop_event = threading.Event()
-                            lock_renewal_thread = threading.Thread(
-                                target=self._renew_message_lock,
-                                args=(message, topic_receiver)
+                    available_slots = self._max_concurrent_messages - self.message_processing
+                    if available_slots > 0:
+                        try:
+                            messages = topic_receiver.receive_messages(
+                                max_message_count=available_slots,
+                                max_wait_time=5
                             )
-                            lock_renewal_thread.start()
-                            try:
-                                self.process_message(message, topic_receiver)
-                            except Exception as e:
-                                logger.error(f'Error processing message: {message}. Error: {e}')
-                                topic_receiver.abandon_message(message)
-                                logger.info(f'Message {message.message_id} abandoned')
-                            finally:
-                                stop_event.set()  # Signal the lock renewal thread to stop
-                                lock_renewal_thread.join()
-                    except Exception as et:
-                        logger.error(f'Error in service bus connection: {et}')
-                        # Change mode from PEEK_LOCK to RECEIVE_AND_DELETE
+                            if not messages:
+                                continue
+                            for message in messages:
+                                self.message_processing += 1
+                                threading.Thread(
+                                    target=self._process_message_in_thread,
+                                    args=(message, topic_receiver,)).start()
+                        except Exception as et:
+                            logger.error(f'Error in service bus connection: {et}')
+                    else:
+                        time.sleep(10)  # Short sleep to prevent tight loop if no slots available
+
                 logger.info('Receiver stopped')
+
+    def _process_message_in_thread(self, message, topic_receiver):
+        try:
+            self.process_message(message=message, receiver=topic_receiver)
+        except Exception as e:
+            logger.error(f'Error: {e}, Invalid message received: {message}')
+        finally:
+            try:
+                topic_receiver.complete_message(message)  # Mark the message as complete
+            except Exception as err:
+                logger.error(f'Error completing the message: {err}')
+            self.message_processing -= 1
 
 
 class Topic(TopicAbstract):

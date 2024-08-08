@@ -112,7 +112,10 @@ Topic can be accessed by the core method `get_topic`. This method takes two para
 from python_ms_core import Core
 
 core = Core()
-topic = core.get_topic(topic_name='topicName')
+topic = core.get_topic(topic_name='topicName') # By default, process messages concurrently which are available CPU cores  
+topic = core.get_topic(topic_name='topicName', max_concurrent_messages=10) # Process 10 messages concurrently  
+
+
 
 ```
 
