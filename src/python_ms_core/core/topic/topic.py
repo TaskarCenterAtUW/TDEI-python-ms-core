@@ -1,10 +1,10 @@
 import json
 import logging
-import threading
 import time
 from .config.topic_config import Config
-from .abstract.topic_abstract import TopicAbstract
 from ..resource_errors import ExceptionHandler
+from concurrent.futures import ThreadPoolExecutor
+from .abstract.topic_abstract import TopicAbstract
 from ..queue.models.queue_message import QueueMessage
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -18,6 +18,7 @@ class Callback:
         self._max_concurrent_messages = max_concurrent_messages
         self._renewal_interval = 30  # seconds
         self.message_processing = 0
+        self.executor = ThreadPoolExecutor(max_workers=max_concurrent_messages)
 
     def _renew_message_lock(self, message, receiver):
         while True:
@@ -31,12 +32,9 @@ class Callback:
     # Sends data to the callback function
     def process_message(self, message, receiver):
         queue_message = QueueMessage.data_from(str(message))
+        secondary_executor = ThreadPoolExecutor(max_workers=1)
         if not message._lock_expired:
-            lock_renewal_thread = threading.Thread(
-                target=self._renew_message_lock,
-                args=(message, receiver)
-            )
-            lock_renewal_thread.start()
+            secondary_executor.submit(self._renew_message_lock, message, receiver)
         self._function_to_call(queue_message)
 
     # Starts listening to the messages
@@ -61,9 +59,7 @@ class Callback:
                                 continue
                             for message in messages:
                                 self.message_processing += 1
-                                threading.Thread(
-                                    target=self._process_message_in_thread,
-                                    args=(message, topic_receiver,)).start()
+                                self.executor.submit(self._process_message_in_thread, message, topic_receiver)
                         except Exception as et:
                             logger.error(f'Error in service bus connection: {et}')
                     else:
@@ -94,9 +90,7 @@ class Topic(TopicAbstract):
     def subscribe(self, subscription=None, callback=None):
         if subscription is not None:
             cb = Callback(callback, max_concurrent_messages=self.max_concurrent_messages)
-            thread = threading.Thread(target=cb.start_listening, args=(self.provider, self.topic, subscription))
-            thread.start()
-            time.sleep(5)
+            cb.start_listening(self.provider, self.topic, subscription)
         else:
             logging.error(
                 f'Unimplemented initialize for core {self.provider.provider}, Subscription name is required!')

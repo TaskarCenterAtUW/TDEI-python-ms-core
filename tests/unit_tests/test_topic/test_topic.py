@@ -19,22 +19,33 @@ class TestTopic(unittest.TestCase):
         mock_callback = MagicMock()
         mock_provider = MagicMock()
         mock_client = MagicMock()
-        mock_thread = MagicMock()
 
-        with patch('threading.Thread', return_value=mock_thread) as mock_thread_class:
-            topic = Topic(config=self.mock_config, topic_name='mock_topic')
-            topic.provider = mock_provider
-            mock_provider.client = mock_client
+        topic = Topic(config=self.mock_config, topic_name='mock_topic')
+        topic.provider = mock_provider
+        mock_provider.client = mock_client
 
-            with patch.object(Callback, 'start_listening', return_value=None) as mock_start_listening:
-                topic.subscribe(subscription='mock_subscription', callback=mock_callback)
+        with patch.object(Callback, 'start_listening', return_value=None) as mock_start_listening:
+            topic.subscribe(subscription='mock_subscription', callback=mock_callback)
 
-                # Assertions on the objects
-                mock_thread.start.assert_called_once()
-                mock_thread_class.assert_called_once_with(
-                    target=mock_start_listening,
-                    args=(mock_provider, 'mock_topic', 'mock_subscription')
-                )
+            # Assertions on the objects
+            mock_start_listening.assert_called_once_with(mock_provider, 'mock_topic', 'mock_subscription')
+
+    def test_subscribe_without_subscription(self):
+        mock_callback = MagicMock()
+        mock_provider = MagicMock()
+        mock_client = MagicMock()
+
+        topic = Topic(config=self.mock_config, topic_name='mock_topic')
+        topic.provider = mock_provider
+        mock_provider.client = mock_client
+
+        with patch('logging.error') as mock_logging_error:
+            topic.subscribe(subscription=None, callback=mock_callback)
+
+            # Assertions
+            mock_logging_error.assert_called_once_with(
+                f'Unimplemented initialize for core {mock_provider.provider}, Subscription name is required!'
+            )
 
     def test_publish(self):
         data = {'test': random.randint(0, 1000)}
