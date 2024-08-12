@@ -22,6 +22,9 @@ jobs:
       - name: Installing git
         run: pip install gitpython
 
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Generate local version
         run: python freeze_version.py
 
