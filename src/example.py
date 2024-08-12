@@ -1,39 +1,45 @@
 # Testing code
-import sys
 import os
 import time
 import uuid
 import random
 import datetime
 from io import BytesIO, StringIO
+import threading
 
 from python_ms_core import Core
 from python_ms_core.core.queue.models.queue_message import QueueMessage
 from python_ms_core.core.auth.models.permission_request import PermissionRequest
 
 core = Core()
-print('Hello')
-
-topic = 'gtfs-pathways-upload'
-subscription = 'log'
-some_other_sub = 'usdufs'
+print(f'Core version: {Core.__version__}')
+topic = 'temp-request'
+subscription = 'temp'
+some_other_sub = 'temp'
 
 
 def publish_messages(topic_name):
     topic_object = core.get_topic(topic_name=topic_name)
     queue_message = QueueMessage.data_from({
         'message': str(uuid.uuid4().hex),
-        'data': {'a': random.randint(0, 1000)}
+        'data': {'a': random.randint(60, 120)}
     })
     topic_object.publish(data=queue_message)
     print('Message Published')
 
 
+def long_running_task(sleep_time):
+    # Simulate a long-running task
+    time.sleep(sleep_time)
+
+
 def subscribe(topic_name, subscription_name):
     def process(message):
-        print(f'Message Received: {message}')
-        # Spawn and thread process it -> 1 hr no issues
-        # return
+        print(f'Message Received: {message.data}')
+        long_running_thread = threading.Thread(target=long_running_task, args=(message.data['a'],))
+        long_running_thread.start()
+        long_running_thread.join()
+        print(f' > Message Completed: {message.data}')
 
     topic_object = core.get_topic(topic_name=topic_name)
     try:
@@ -43,6 +49,8 @@ def subscribe(topic_name, subscription_name):
 
 
 subscribe(topic, subscription)
+# for x in range(10):
+#     publish_messages(topic_name=topic)
 
 # azure_client = core.get_storage_client()
 
