@@ -1,5 +1,16 @@
 # Change log
 
+# Version 0.0.21
+### New Features and Enhancements
+- **Message Lock Renewal:** Implemented a mechanism to automatically renew message locks during processing. This ensures that messages remain active and are not returned to the queue for reprocessing while they are being handled.  
+- **Concurrent Message Processing:** Enhanced the system to process messages concurrently using a number of worker threads equal to the number of available CPU cores by default. Users can override this default by specifying the `max_concurrent_messages` parameter, for example, `core.get_topic(topic_name=topic_name, max_concurrent_messages=10)`. This optimization leverages system resources for improved performance and throughput. 
+- **Completion Acknowledgement:** Updated the processing flow to wait until message processing is fully completed before sending the acknowledgement of message completion. This change ensures reliable processing and accurate message handling. 
+- **Version Tracking:** Introduced a `version.py` file to maintain and track the package version. This addition facilitates version control and package management.
+- **Unit Test Updates:** Updated unit test cases to cover the new features and enhancements, ensuring robust testing and quality assurance.
+- **Documentation Update:** Updated the README file to reflect the new features and enhancements, providing clearer guidance and information for users.
+
+
+
 # 0.0.18
 - Adds extra checks in service bus for retries
 - Additional logging done if there is no network and  service bus crashes
