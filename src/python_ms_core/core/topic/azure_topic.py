@@ -10,6 +10,8 @@ from ..queue.models.queue_message import QueueMessage
 from azure.servicebus import ServiceBusClient, ServiceBusMessage
 from azure.servicebus import AutoLockRenewer
 import concurrent.futures as cf
+import threading
+
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger('AzureTopic')
@@ -51,6 +53,7 @@ class AzureTopic(TopicAbstract):
         self.lock_renewal = AutoLockRenewer(max_workers=max_concurrent_messages)
         self.max_renewal_duration = 86400 # Renew the message upto 1 day
         self.wait_time_for_message = 5
+        self.thread_lock = threading.Lock()
     
     
     def publish(self, data: QueueMessage):
@@ -99,7 +102,8 @@ class AzureTopic(TopicAbstract):
             ServiceBusMessage: The processed message.
         """
         try:
-            self.internal_count += 1 # thread safe.
+            with self.thread_lock:
+                self.internal_count += 1 # thread safe.
             queue_message = QueueMessage.data_from(str(message))
             callbackfn(queue_message)
             return [True,message]
@@ -114,7 +118,9 @@ class AzureTopic(TopicAbstract):
         Args:
             x (cf.Future): The future object representing the message processing.
         """
-        self.internal_count -= 1 # thread safe.
+        # Lock the internal count
+        with self.thread_lock:
+            self.internal_count -= 1
         # Check if the future has an exception
         [is_success,incoming_message] = x.result()
         if is_success:
