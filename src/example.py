@@ -40,8 +40,15 @@ def publish_messages(topic_name):
     print('Message Published')
 
 
+random_exec = 3
+exec_count = 0
 def long_running_task(sleep_time):
     # Simulate a long-running task
+    global exec_count
+    exec_count += 1 
+    if exec_count % random_exec == 0:
+        # throw an exception
+        raise Exception('Random Exception')
     time.sleep(sleep_time)
     sender_obj = MessageSender(topic_name=respond_topic)
     sender_obj.send_message({'message': 'Task Completed'})

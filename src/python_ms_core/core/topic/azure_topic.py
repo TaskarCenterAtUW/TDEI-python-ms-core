@@ -48,7 +48,7 @@ class AzureTopic(TopicAbstract):
         self.publisher = self.client.get_topic_sender(topic_name=topic_name)
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent_messages)
         self.internal_count = 0
-        self.lock_renewal = AutoLockRenewer(max_workers=4)
+        self.lock_renewal = AutoLockRenewer(max_workers=max_concurrent_messages)
         self.max_renewal_duration = 86400 # Renew the message upto 1 day
         self.wait_time_for_message = 5
     
@@ -99,14 +99,14 @@ class AzureTopic(TopicAbstract):
             ServiceBusMessage: The processed message.
         """
         try:
-            self.internal_count += 1
+            self.internal_count += 1 # thread safe.
             queue_message = QueueMessage.data_from(str(message))
             callbackfn(queue_message)
+            return [True,message]
         except Exception as e:
             logger.error(f'Error in processing message: {e}')
-        finally: 
-            return message                 
-
+            return [False,message]
+                             
     
     def settle_message(self, x: cf.Future):
         """
@@ -114,9 +114,14 @@ class AzureTopic(TopicAbstract):
         Args:
             x (cf.Future): The future object representing the message processing.
         """
-        self.internal_count -= 1
-        incoming_message = x.result()
-        self.receiver.complete_message(incoming_message)
+        self.internal_count -= 1 # thread safe.
+        # Check if the future has an exception
+        [is_success,incoming_message] = x.result()
+        if is_success:
+            self.receiver.complete_message(incoming_message)
+        else:
+            print(f'Abandoning message: {incoming_message}')
+            self.receiver.abandon_message(incoming_message) # send back to the topic
         return  
 
     
