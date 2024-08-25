@@ -3,6 +3,7 @@ import logging
 from .core.logger.logger import Logger
 from .core.logger.local_logger import LocalLogger
 from .core.topic.topic import Topic
+from .core.topic.azure_topic import AzureTopic
 from .core.topic.local_topic import LocalTopic
 from .core.storage.providers.azure.azure_storage_client import AzureStorageClient
 from .core.storage.providers.local.local_storage_client import LocalStorageClient
@@ -49,7 +50,7 @@ class Core:
         if topic_config.provider.upper() == LOCAL_ENV:
             return LocalTopic(config=topic_config, topic_name=topic_name)
         elif topic_config.provider.upper() == AZURE_ENV:
-            return Topic(config=topic_config, topic_name=topic_name, max_concurrent_messages=max_concurrent_messages)
+            return AzureTopic(config=topic_config, topic_name=topic_name, max_concurrent_messages=max_concurrent_messages)
         else:
             logging.error(f'Failed to initialize core.get_topic for provider: {topic_config.provider}')
 

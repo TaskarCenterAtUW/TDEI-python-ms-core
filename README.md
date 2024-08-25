@@ -150,9 +150,31 @@ def process(message):
     print(f'Message Received: {message}')
 
 try:
-    topic_object.subscribe(subscription='subscriptionName')
+    topic_object.subscribe(subscription='subscriptionName',process)
 except Exception as e:
     print(e)
+```
+
+- Please note that `subscribe` is a blocking call which runs on a loop. Either use a `thread.Thread` to subscribe or an async method to continue with the other parts of the program
+
+eg.
+```python
+
+from python_ms_core import Core
+import threading
+
+core = Core()
+topic_object = topic = Core.get_topic(topic_name='topicName')
+
+def process(message):
+    print(f'Message Received: {message}')
+
+try:
+    thread = threading.Thread(topic_object.subscribe, ['subscriptionName',process])
+    thread.start()
+except Exception as e:
+    print(e)
+
 ```
 
 ### Storage

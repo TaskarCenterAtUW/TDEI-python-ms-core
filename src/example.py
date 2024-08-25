@@ -13,42 +13,83 @@ from python_ms_core.core.auth.models.permission_request import PermissionRequest
 
 core = Core()
 print(f'Core version: {Core.__version__}')
-topic = 'temp-request'
+topic = 'temp-nar'
 subscription = 'temp'
 some_other_sub = 'temp'
+respond_topic = 'temp-response'
+# respond_topic_object = core.get_topic(topic_name=respond_topic)
+
+
+class MessageSender:
+    def __init__(self, topic_name):
+        self.topic = core.get_topic(topic_name=topic_name)
+
+    def send_message(self, message):
+        self.topic.publish(data=QueueMessage.data_from(message))
+
+
 
 
 def publish_messages(topic_name):
     topic_object = core.get_topic(topic_name=topic_name)
     queue_message = QueueMessage.data_from({
         'message': str(uuid.uuid4().hex),
-        'data': {'a': random.randint(60, 120)}
+        'data': {'a': random.randint(10, 25)}
     })
     topic_object.publish(data=queue_message)
     print('Message Published')
 
 
+random_exec = 3
+exec_count = 0
 def long_running_task(sleep_time):
     # Simulate a long-running task
+    global exec_count
+    exec_count += 1 
+    if exec_count % random_exec == 0:
+        # throw an exception
+        raise Exception('Random Exception')
     time.sleep(sleep_time)
+    sender_obj = MessageSender(topic_name=respond_topic)
+    sender_obj.send_message({'message': 'Task Completed'})
+    print(f' > Task Completed: {sleep_time}')
 
 
 def subscribe(topic_name, subscription_name):
     def process(message):
         print(f'Message Received: {message.data}')
-        long_running_thread = threading.Thread(target=long_running_task, args=(message.data['a'],))
-        long_running_thread.start()
-        long_running_thread.join()
+        # long_running_thread = threading.Thread(target=long_running_task, args=(message.data['a'],))
+        # long_running_thread.start()
+        # long_running_thread.join()
+        long_running_task(message.data['a'])
         print(f' > Message Completed: {message.data}')
 
-    topic_object = core.get_topic(topic_name=topic_name)
+    topic_object = core.get_topic(topic_name=topic_name,max_concurrent_messages=2)
     try:
         topic_object.subscribe(subscription=subscription_name, callback=process)
     except Exception as e:
         print(e)
 
 
-subscribe(topic, subscription)
+
+import argparse
+
+parser = argparse.ArgumentParser(description='Process the core topic.')
+parser.add_argument('-m','--mode', type=str, help='Mode of operation (publish/subscribe)', required=True)
+parser.add_argument('-s','--size', type=int, help='Number of the messages to send', required=False)
+
+mode = parser.parse_args().mode
+size = parser.parse_args().size
+if mode == 'publish':
+    for x in range(size):
+        print(f'Publishing message {x+1}')
+        publish_messages(topic_name=topic)
+if mode == 'subscribe':
+    subscribe(topic, subscription)
+# subscribe(topic, subscription)
+# for x in range(10):
+#     publish_messages(topic_name=topic)
+    # subscribe(topic, subscription)
 # for x in range(10):
 #     publish_messages(topic_name=topic)
 
