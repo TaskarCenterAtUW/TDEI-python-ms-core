@@ -83,7 +83,7 @@ class AzureTopic(TopicAbstract):
                         if not messages or len(messages) == 0:
                             continue
                         for message in messages: 
-                            self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration)
+                            self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                             execution_task = self.executor.submit(self.internal_callback, message, callback)
                             execution_task.add_done_callback(lambda x: self.settle_message(x))
                     else:
@@ -92,6 +92,14 @@ class AzureTopic(TopicAbstract):
                     logger.error(f'Error in receiving messages: {e}')
 
     
+    def on_renew_error(self, error):
+        """
+        Callback function invoked when there is an error renewing the message lock.
+        Args:
+            error (Exception): The exception that occurred during lock renewal.
+        """
+        logger.error(f'Error in renewing lock: {error}')
+
     def internal_callback(self, message, callbackfn):
         """
         Internal callback function that processes a message and invokes the callback function.
