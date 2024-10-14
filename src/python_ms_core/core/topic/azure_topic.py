@@ -55,6 +55,8 @@ class AzureTopic(TopicAbstract):
         self.lock_renewal = AutoLockRenewer(max_workers=max_concurrent_messages,on_lock_renew_failure=self.on_renew_error,max_lock_renewal_duration=self.max_renewal_duration)
         self.wait_time_for_message = 5
         self.thread_lock = threading.Lock()
+        _log = logging.getLogger('azure.servicebus.auto_lock_renewer')
+        _log.setLevel(logging.DEBUG)
     
     
     def publish(self, data: QueueMessage):
