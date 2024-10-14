@@ -9,6 +9,7 @@ from .abstract.topic_abstract import TopicAbstract
 from ..queue.models.queue_message import QueueMessage
 from azure.servicebus import ServiceBusClient, ServiceBusMessage
 from azure.servicebus import AutoLockRenewer
+from azure.servicebus.exceptions import ServiceBusError
 import concurrent.futures as cf
 import threading
 
@@ -50,8 +51,8 @@ class AzureTopic(TopicAbstract):
         self.publisher = self.client.get_topic_sender(topic_name=topic_name)
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent_messages)
         self.internal_count = 0
-        self.lock_renewal = AutoLockRenewer(max_workers=max_concurrent_messages)
         self.max_renewal_duration = 86400 # Renew the message upto 1 day
+        self.lock_renewal = AutoLockRenewer(max_workers=max_concurrent_messages,on_lock_renew_failure=self.on_renew_error,max_lock_renewal_duration=self.max_renewal_duration)
         self.wait_time_for_message = 5
         self.thread_lock = threading.Lock()
     
@@ -74,7 +75,7 @@ class AzureTopic(TopicAbstract):
             subscription (str): The name of the subscription to subscribe to.
             callback (function): The callback function to invoke for each message.
         """
-        self.receiver = self.client.get_subscription_receiver(topic_name=self.topic_name, subscription_name=subscription)
+        self.receiver = self.client.get_subscription_receiver(topic_name=self.topic_name, subscription_name=subscription,auto_lock_renewer=self.lock_renewal)
         while True:
                 try:
                     to_receive = (self.max_concurrent_messages - self.internal_count)
@@ -83,7 +84,7 @@ class AzureTopic(TopicAbstract):
                         if not messages or len(messages) == 0:
                             continue
                         for message in messages: 
-                            self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
+                            # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                             execution_task = self.executor.submit(self.internal_callback, message, callback)
                             execution_task.add_done_callback(lambda x: self.settle_message(x))
                     else:
@@ -131,11 +132,20 @@ class AzureTopic(TopicAbstract):
             self.internal_count -= 1
         # Check if the future has an exception
         [is_success,incoming_message] = x.result()
-        if is_success:
-            self.receiver.complete_message(incoming_message)
-        else:
-            print(f'Abandoning message: {incoming_message}')
-            self.receiver.abandon_message(incoming_message) # send back to the topic
+        try:
+            if is_success:
+                self.receiver.complete_message(incoming_message)
+            else:
+                print(f'Abandoning message: {incoming_message}')
+                self.receiver.abandon_message(incoming_message) # send back to the topic
+        except ServiceBusError as e:
+            logger.error(f'Error in settling message: {e}')
+            print(f'Locked until {incoming_message.locked_until}')
+            # if message is MessageLockLostError, then renew the lock and try again.
+        except Exception as e:
+            logger.error(f'Error in settling message: {e}')
+            # if message is MessageLockLostError, then renew the lock and try again.
+            
         return  
 
     
