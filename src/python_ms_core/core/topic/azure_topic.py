@@ -89,6 +89,8 @@ class AzureTopic(TopicAbstract):
                             continue
                         for message in messages: 
                             logger.info(f'Received message: {message}')
+                            logger.info(f'Delivery count {message.delivery_count}')
+                            logger.info(f'Message ID {message.message_id}')
                             # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                             execution_task = self.executor.submit(self.internal_callback, message, callback)
                             execution_task.add_done_callback(lambda x: self.settle_message(x))
