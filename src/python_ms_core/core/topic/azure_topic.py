@@ -82,11 +82,9 @@ class AzureTopic(TopicAbstract):
         while True:
                 try:
                     to_receive = (self.max_concurrent_messages - self.internal_count)
-                    logger.info(f'To receive count is {to_receive}')
                     if to_receive > 0:
                         messages = self.receiver.receive_messages(max_message_count=to_receive, max_wait_time=self.wait_time_for_message)
                         if not messages or len(messages) == 0:
-                            logger.info('No messages received')
                             continue
                         for message in messages: 
                             logger.info(f'Received message: {message}')
@@ -98,6 +96,7 @@ class AzureTopic(TopicAbstract):
                                 # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                                 execution_task = self.executor.submit(self.internal_callback, message, callback)
                                 execution_task.add_done_callback(lambda x: self.settle_message(x))
+                                self.internal_message_dict[message.message_id] = message
                             else:
                                 logger.info(f'Message already exists in internal dictionary: {message.message_id}')
                                 logger.info(f'Locked until {message.locked_until_utc}')
@@ -129,6 +128,7 @@ class AzureTopic(TopicAbstract):
             with self.thread_lock:
                 self.internal_count += 1 # thread safe.
             queue_message = QueueMessage.data_from(str(message))
+           
             callbackfn(queue_message)
             return [True,message]
         except Exception as e:
@@ -150,6 +150,8 @@ class AzureTopic(TopicAbstract):
         current_message = self.internal_message_dict.pop(incoming_message.message_id, None)
         if current_message is None:
             current_message = incoming_message
+        else:
+            logger.info(f'Popped message from internal dictionary: {current_message.message_id}')
 
         try:
             if is_success:
