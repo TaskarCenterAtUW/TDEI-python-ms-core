@@ -52,7 +52,7 @@ class AzureTopic(TopicAbstract):
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent_messages)
         self.internal_count = 0
         self.max_renewal_duration = 86400 # Renew the message upto 1 day
-        self.lock_renewal = AutoLockRenewer(max_workers=max_concurrent_messages,on_lock_renew_failure=self.on_renew_error,max_lock_renewal_duration=self.max_renewal_duration)
+        self.lock_renewal = AutoLockRenewer(max_workers=1,on_lock_renew_failure=self.on_renew_error,max_lock_renewal_duration=self.max_renewal_duration)
         self.wait_time_for_message = 5
         self.thread_lock = threading.Lock()
         _log = logging.getLogger('azure.servicebus.auto_lock_renewer')
@@ -96,13 +96,11 @@ class AzureTopic(TopicAbstract):
                                 self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                                 execution_task = self.executor.submit(self.internal_callback, message, callback)
                                 execution_task.add_done_callback(lambda x: self.settle_message(x))
-                                # self.internal_message_dict[message.message_id] = message
                             else:
                                 logger.info(f'Message already exists in internal dictionary: {message.message_id}')
                                 logger.info(f'Locked until {message.locked_until_utc}')
-                                self.lock_renewal.close(existing_message)
-                                self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
-                                # self.internal_message_dict[message.message_id] = message
+                                # self.lock_renewal.close(existing_message)
+                                # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                             with self.thread_lock:
                                 self.internal_message_dict[message.message_id] = message
                     else:
@@ -159,6 +157,8 @@ class AzureTopic(TopicAbstract):
             logger.info(f'No message found internally')
         else:
             logger.info(f'Popped message from internal dictionary: {current_message.message_id}')
+            logger.info(f'{current_message.locked_until_utc} -- {incoming_message.locked_until_utc}')
+            logger.info(f'{current_message.delivery_count} -- {incoming_message.delivery_count}')
 
         try:
             if is_success:
