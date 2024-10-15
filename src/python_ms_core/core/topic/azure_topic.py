@@ -57,6 +57,7 @@ class AzureTopic(TopicAbstract):
         self.thread_lock = threading.Lock()
         _log = logging.getLogger('azure.servicebus.auto_lock_renewer')
         _log.setLevel(logging.DEBUG)
+        self.internal_message_dict = {}
     
     
     def publish(self, data: QueueMessage):
@@ -91,9 +92,16 @@ class AzureTopic(TopicAbstract):
                             logger.info(f'Received message: {message}')
                             logger.info(f'Delivery count {message.delivery_count}')
                             logger.info(f'Message ID {message.message_id}')
-                            # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
-                            execution_task = self.executor.submit(self.internal_callback, message, callback)
-                            execution_task.add_done_callback(lambda x: self.settle_message(x))
+
+                            existing_message = self.internal_message_dict.get(message.message_id, None)
+                            if existing_message is None:
+                                # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
+                                execution_task = self.executor.submit(self.internal_callback, message, callback)
+                                execution_task.add_done_callback(lambda x: self.settle_message(x))
+                            else:
+                                logger.info(f'Message already exists in internal dictionary: {message.message_id}')
+                                logger.info(f'Locked until {message.locked_until_utc}')
+                                self.internal_message_dict[message.message_id] = message
                     else:
                         time.sleep(self.wait_time_for_message)
                 except Exception as e:
@@ -139,15 +147,19 @@ class AzureTopic(TopicAbstract):
             self.internal_count -= 1
         # Check if the future has an exception
         [is_success,incoming_message] = x.result()
+        current_message = self.internal_message_dict.pop(incoming_message.message_id, None)
+        if current_message is None:
+            current_message = incoming_message
+
         try:
             if is_success:
-                self.receiver.complete_message(incoming_message)
+                self.receiver.complete_message(current_message)
             else:
-                print(f'Abandoning message: {incoming_message}')
-                self.receiver.abandon_message(incoming_message) # send back to the topic
+                print(f'Abandoning message: {current_message}')
+                self.receiver.abandon_message(current_message) # send back to the topic
         except ServiceBusError as e:
             logger.error(f'Error in settling message: {e}')
-            print(f'Locked until {incoming_message.locked_until}')
+            print(f'Locked until {current_message.locked_until_utc}')
             # if message is MessageLockLostError, then renew the lock and try again.
         except Exception as e:
             logger.error(f'Error in settling message: {e}')
