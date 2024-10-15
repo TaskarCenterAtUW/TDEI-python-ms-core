@@ -81,11 +81,14 @@ class AzureTopic(TopicAbstract):
         while True:
                 try:
                     to_receive = (self.max_concurrent_messages - self.internal_count)
+                    logger.info(f'To receive count is {to_receive}')
                     if to_receive > 0:
                         messages = self.receiver.receive_messages(max_message_count=to_receive, max_wait_time=self.wait_time_for_message)
                         if not messages or len(messages) == 0:
+                            logger.info('No messages received')
                             continue
                         for message in messages: 
+                            logger.info(f'Received message: {message}')
                             # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                             execution_task = self.executor.submit(self.internal_callback, message, callback)
                             execution_task.add_done_callback(lambda x: self.settle_message(x))
