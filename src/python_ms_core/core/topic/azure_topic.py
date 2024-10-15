@@ -7,11 +7,12 @@ from ..resource_errors import ExceptionHandler
 from concurrent.futures import ThreadPoolExecutor
 from .abstract.topic_abstract import TopicAbstract
 from ..queue.models.queue_message import QueueMessage
-from azure.servicebus import ServiceBusClient, ServiceBusMessage
+from azure.servicebus import ServiceBusClient, ServiceBusMessage, ServiceBusReceivedMessage
 from azure.servicebus import AutoLockRenewer
 from azure.servicebus.exceptions import ServiceBusError
 import concurrent.futures as cf
 import threading
+from datetime import datetime
 
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -169,11 +170,29 @@ class AzureTopic(TopicAbstract):
         except ServiceBusError as e:
             logger.error(f'Error in settling message: {e}')
             print(f'Locked until {current_message.locked_until_utc}')
+            self.try_settle_again(current_message)
             # if message is MessageLockLostError, then renew the lock and try again.
         except Exception as e:
             logger.error(f'Error in settling message: {e}')
             # if message is MessageLockLostError, then renew the lock and try again.
             
         return  
+    
+    def try_settle_again(self,message:ServiceBusReceivedMessage,abandon:bool= False):
+        try:
+            # Check if the message has expired lock
+            if message.locked_until_utc < datetime.now(datetime.timezone.utc):
+                logger.error(f'Message lock has expired: {message.message_id}')
+                self.receiver.renew_message_lock(message)
+                logger.info(f'Renewed message lock: {message.message_id}')
+                logger.info(f'Locked until {message.locked_until_utc}')
+            if abandon:
+                self.receiver.abandon_message(message)
+            else:
+                self.receiver.complete_message(message)
+        except Exception as e:
+            logger.error(f'Error in settling message second time: {e}')
+            # if message is MessageLockLostError, then renew the lock and try again.
+        return
 
     
