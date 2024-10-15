@@ -54,7 +54,7 @@ class AzureTopic(TopicAbstract):
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent_messages)
         self.internal_count = 0
         self.max_renewal_duration = 86400 # Renew the message upto 1 day
-        self.lock_renewal = AutoLockRenewer(max_workers=1,on_lock_renew_failure=self.on_renew_error,max_lock_renewal_duration=self.max_renewal_duration)
+        self.lock_renewal = AutoLockRenewer(max_workers=max_concurrent_messages+2,on_lock_renew_failure=self.on_renew_error,max_lock_renewal_duration=self.max_renewal_duration)
         self.wait_time_for_message = 5
         self.thread_lock = threading.Lock()
         _log = logging.getLogger('azure.servicebus.auto_lock_renewer')
