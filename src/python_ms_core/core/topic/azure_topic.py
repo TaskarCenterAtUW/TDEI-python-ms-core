@@ -78,7 +78,7 @@ class AzureTopic(TopicAbstract):
             subscription (str): The name of the subscription to subscribe to.
             callback (function): The callback function to invoke for each message.
         """
-        self.receiver = self.client.get_subscription_receiver(topic_name=self.topic_name, subscription_name=subscription,auto_lock_renewer=self.lock_renewal)
+        self.receiver = self.client.get_subscription_receiver(topic_name=self.topic_name, subscription_name=subscription)
         while True:
                 try:
                     to_receive = (self.max_concurrent_messages - self.internal_count)
@@ -93,13 +93,15 @@ class AzureTopic(TopicAbstract):
 
                             existing_message = self.internal_message_dict.get(message.message_id, None)
                             if existing_message is None:
-                                # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
+                                self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                                 execution_task = self.executor.submit(self.internal_callback, message, callback)
                                 execution_task.add_done_callback(lambda x: self.settle_message(x))
                                 # self.internal_message_dict[message.message_id] = message
                             else:
                                 logger.info(f'Message already exists in internal dictionary: {message.message_id}')
                                 logger.info(f'Locked until {message.locked_until_utc}')
+                                self.lock_renewal.close(existing_message)
+                                self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                                 # self.internal_message_dict[message.message_id] = message
                             with self.thread_lock:
                                 self.internal_message_dict[message.message_id] = message
