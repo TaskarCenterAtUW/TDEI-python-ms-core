@@ -45,7 +45,7 @@ Methods:
 class AzureTopic(TopicAbstract):
     def __init__(self, config: TopicConfig=None, topic_name=None, max_concurrent_messages:int=1):
         self.topic = topic_name
-        self.client = ServiceBusClient.from_connection_string(conn_str=config.connection_string, retry_total=10, retry_backoff_factor=1, retry_backoff_max=30)
+        self.client = ServiceBusClient.from_connection_string(conn_str=config.connection_string, retry_total=10, retry_backoff_factor=1, retry_backoff_max=30,logging_enable=True)
         self.max_concurrent_messages = max_concurrent_messages
         self.topic_name = topic_name
         self.publisher = self.client.get_topic_sender(topic_name=topic_name)
