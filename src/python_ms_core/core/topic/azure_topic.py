@@ -12,7 +12,8 @@ from azure.servicebus import AutoLockRenewer
 from azure.servicebus.exceptions import ServiceBusError
 import concurrent.futures as cf
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
+from datetime import timezone as tz
 
 
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -182,7 +183,7 @@ class AzureTopic(TopicAbstract):
         logger.warning(f'Trying to settle message again: {message.message_id}')
         try:
             # Check if the message has expired lock
-            if message.locked_until_utc < datetime.now(datetime.timezone.utc):
+            if message.locked_until_utc < datetime.now(tz.utc):
                 logger.error(f'Message lock has expired: {message.message_id}')
                 self.receiver.renew_message_lock(message)
                 logger.info(f'Renewed message lock: {message.message_id}')
