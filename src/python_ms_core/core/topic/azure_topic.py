@@ -170,7 +170,7 @@ class AzureTopic(TopicAbstract):
         except ServiceBusError as e:
             logger.error(f'Error in settling message: {e}')
             print(f'Locked until {current_message.locked_until_utc}')
-            self.try_settle_again(current_message)
+            self.try_settle_again(current_message, is_success)
             # if message is MessageLockLostError, then renew the lock and try again.
         except Exception as e:
             logger.error(f'Error in settling message: {e}')
@@ -178,7 +178,8 @@ class AzureTopic(TopicAbstract):
             
         return  
     
-    def try_settle_again(self,message:ServiceBusReceivedMessage,abandon:bool= False):
+    def try_settle_again(self,message:ServiceBusReceivedMessage,complete:bool= True):
+        logger.warning(f'Trying to settle message again: {message.message_id}')
         try:
             # Check if the message has expired lock
             if message.locked_until_utc < datetime.now(datetime.timezone.utc):
@@ -186,10 +187,10 @@ class AzureTopic(TopicAbstract):
                 self.receiver.renew_message_lock(message)
                 logger.info(f'Renewed message lock: {message.message_id}')
                 logger.info(f'Locked until {message.locked_until_utc}')
-            if abandon:
-                self.receiver.abandon_message(message)
-            else:
+            if complete:
                 self.receiver.complete_message(message)
+            else:
+                self.receiver.abandon_message(message)
         except Exception as e:
             logger.error(f'Error in settling message second time: {e}')
             # if message is MessageLockLostError, then renew the lock and try again.
