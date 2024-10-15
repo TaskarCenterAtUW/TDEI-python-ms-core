@@ -96,10 +96,12 @@ class AzureTopic(TopicAbstract):
                                 # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                                 execution_task = self.executor.submit(self.internal_callback, message, callback)
                                 execution_task.add_done_callback(lambda x: self.settle_message(x))
-                                self.internal_message_dict[message.message_id] = message
+                                # self.internal_message_dict[message.message_id] = message
                             else:
                                 logger.info(f'Message already exists in internal dictionary: {message.message_id}')
                                 logger.info(f'Locked until {message.locked_until_utc}')
+                                # self.internal_message_dict[message.message_id] = message
+                            with self.thread_lock:
                                 self.internal_message_dict[message.message_id] = message
                     else:
                         time.sleep(self.wait_time_for_message)
@@ -147,9 +149,12 @@ class AzureTopic(TopicAbstract):
             self.internal_count -= 1
         # Check if the future has an exception
         [is_success,incoming_message] = x.result()
-        current_message = self.internal_message_dict.pop(incoming_message.message_id, None)
+        logger.info(f'Settle message: {incoming_message.message_id}')
+        with self.thread_lock:
+            current_message = self.internal_message_dict.pop(incoming_message.message_id, None)
         if current_message is None:
             current_message = incoming_message
+            logger.info(f'No message found internally')
         else:
             logger.info(f'Popped message from internal dictionary: {current_message.message_id}')
 
