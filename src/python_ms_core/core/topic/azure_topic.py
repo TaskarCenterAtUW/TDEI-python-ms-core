@@ -54,12 +54,15 @@ class AzureTopic(TopicAbstract):
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent_messages)
         self.internal_count = 0
         self.max_renewal_duration = 86400 # Renew the message upto 1 day
-        self.lock_renewal = AutoLockRenewer(max_workers=max_concurrent_messages+2,on_lock_renew_failure=self.on_renew_error,max_lock_renewal_duration=self.max_renewal_duration)
+        self.lock_renewal = AutoLockRenewer(max_workers=max_concurrent_messages,on_lock_renew_failure=self.on_renew_error,max_lock_renewal_duration=self.max_renewal_duration)
         self.wait_time_for_message = 5
         self.thread_lock = threading.Lock()
         _log = logging.getLogger('azure.servicebus.auto_lock_renewer')
         _log.setLevel(logging.DEBUG)
+        _log2 = logging.getLogger('azure.servicebus.AutoLockRenewer')
+        _log2.setLevel(logging.DEBUG)
         self.internal_message_dict = {}
+        self.cleared_msgs = {}
     
     
     def publish(self, data: QueueMessage):
@@ -194,6 +197,7 @@ class AzureTopic(TopicAbstract):
                 self.receiver.abandon_message(message)
         except Exception as e:
             logger.error(f'Error in settling message second time: {e}')
+            self.cleared_msgs[message.message_id] = complete # store the message to be settled again
             # if message is MessageLockLostError, then renew the lock and try again.
         return
 
