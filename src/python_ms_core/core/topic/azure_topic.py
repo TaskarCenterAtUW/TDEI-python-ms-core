@@ -63,6 +63,7 @@ class AzureTopic(TopicAbstract):
         _log2.setLevel(logging.DEBUG)
         self.internal_message_dict = {}
         self.cleared_msgs = {}
+        self._settle_fail = None
     
     
     def publish(self, data: QueueMessage):
@@ -75,7 +76,7 @@ class AzureTopic(TopicAbstract):
         message = QueueMessage.to_dict(data)
         self.publisher.send_messages(ServiceBusMessage(json.dumps(message)))
 
-    def subscribe(self, subscription: str, callback):
+    def subscribe(self, subscription: str, callback = None, settle_fail = None):
 
         """
         Subscribes to a subscription of the topic and processes incoming messages.
@@ -84,6 +85,7 @@ class AzureTopic(TopicAbstract):
             callback (function): The callback function to invoke for each message.
         """
         self.receiver = self.client.get_subscription_receiver(topic_name=self.topic_name, subscription_name=subscription)
+        self._settle_fail = settle_fail
         while True:
                 try:
                     to_receive = (self.max_concurrent_messages - self.internal_count)
@@ -174,7 +176,10 @@ class AzureTopic(TopicAbstract):
         except ServiceBusError as e:
             logger.error(f'Error in settling message: {e}')
             print(f'Locked until {current_message.locked_until_utc}')
-            self.try_settle_again(current_message, is_success)
+            # self.try_settle_again(current_message, is_success)
+            if self._settle_fail:
+                logger.info(f'Calling settle fail function')
+                self._settle_fail(current_message)
             # if message is MessageLockLostError, then renew the lock and try again.
         except Exception as e:
             logger.error(f'Error in settling message: {e}')

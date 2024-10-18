@@ -87,7 +87,7 @@ class Topic(TopicAbstract):
         self.max_concurrent_messages = max_concurrent_messages
 
     @ExceptionHandler.decorated
-    def subscribe(self, subscription=None, callback=None):
+    def subscribe(self, subscription=None, callback=None, settle_fail=None):
         if subscription is not None:
             cb = Callback(callback, max_concurrent_messages=self.max_concurrent_messages)
             cb.start_listening(self.provider, self.topic, subscription)
