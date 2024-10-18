@@ -99,13 +99,13 @@ class AzureTopic(TopicAbstract):
                             logger.info(f'Message ID {message.message_id}')
 
                             # existing_message = self.internal_message_dict.get(message.message_id, None)
-                            if existing_message is None:
-                                self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
-                                execution_task = self.executor.submit(self.internal_callback, message, callback)
-                                execution_task.add_done_callback(lambda x: self.settle_message(x))
-                            else:
-                                logger.info(f'Message already exists in internal dictionary: {message.message_id}')
-                                logger.info(f'Locked until {message.locked_until_utc}')
+                            # if existing_message is None:
+                            self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
+                            execution_task = self.executor.submit(self.internal_callback, message, callback)
+                            execution_task.add_done_callback(lambda x: self.settle_message(x))
+                            # else:
+                            #     logger.info(f'Message already exists in internal dictionary: {message.message_id}')
+                            #     logger.info(f'Locked until {message.locked_until_utc}')
                                 # self.lock_renewal.close(existing_message)
                                 # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                             # with self.thread_lock:
