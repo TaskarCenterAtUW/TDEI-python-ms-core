@@ -138,7 +138,7 @@ class AzureTopic(TopicAbstract):
                 self.internal_count += 1 # thread safe.
             queue_message = QueueMessage.data_from(str(message))
            
-            callbackfn(queue_message)
+            callbackfn(queue_message,message.message_id)
             return [True,message]
         except Exception as e:
             logger.error(f'Error in processing message: {e}')
