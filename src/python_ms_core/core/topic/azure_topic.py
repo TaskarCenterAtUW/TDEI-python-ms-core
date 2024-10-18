@@ -161,6 +161,7 @@ class AzureTopic(TopicAbstract):
             # current_message = self.internal_message_dict.pop(incoming_message.message_id, None)
         # if current_message is None:
         current_message = incoming_message
+        message_id = current_message.message_id
             # logger.info(f'No message found internally')
         # else:
             # logger.info(f'Popped message from internal dictionary: {current_message.message_id}')
@@ -179,7 +180,7 @@ class AzureTopic(TopicAbstract):
             # self.try_settle_again(current_message, is_success)
             if self._settle_fail:
                 logger.info(f'Calling settle fail function')
-                self._settle_fail(current_message)
+                self._settle_fail(message_id)
             # if message is MessageLockLostError, then renew the lock and try again.
         except Exception as e:
             logger.error(f'Error in settling message: {e}')
