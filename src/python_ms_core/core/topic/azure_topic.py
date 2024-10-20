@@ -61,8 +61,6 @@ class AzureTopic(TopicAbstract):
         _log.setLevel(logging.DEBUG)
         _log2 = logging.getLogger('azure.servicebus.AutoLockRenewer')
         _log2.setLevel(logging.DEBUG)
-        # self.internal_message_dict = {}
-        # self.cleared_msgs = {}
         self._settle_fail = None
     
     
@@ -98,18 +96,10 @@ class AzureTopic(TopicAbstract):
                             logger.info(f'Delivery count {message.delivery_count}')
                             logger.info(f'Message ID {message.message_id}')
 
-                            # existing_message = self.internal_message_dict.get(message.message_id, None)
                             # if existing_message is None:
                             self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                             execution_task = self.executor.submit(self.internal_callback, message, callback)
                             execution_task.add_done_callback(lambda x: self.settle_message(x))
-                            # else:
-                            #     logger.info(f'Message already exists in internal dictionary: {message.message_id}')
-                            #     logger.info(f'Locked until {message.locked_until_utc}')
-                                # self.lock_renewal.close(existing_message)
-                                # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
-                            # with self.thread_lock:
-                                # self.internal_message_dict[message.message_id] = message
                     else:
                         time.sleep(self.wait_time_for_message)
                 except Exception as e:
@@ -137,7 +127,9 @@ class AzureTopic(TopicAbstract):
             with self.thread_lock:
                 self.internal_count += 1 # thread safe.
             queue_message = QueueMessage.data_from(str(message))
-           
+            # Settle message here itself
+            self.receiver.complete_message(message)
+            
             callbackfn(queue_message,message.message_id)
             return [True,message]
         except Exception as e:
@@ -157,34 +149,24 @@ class AzureTopic(TopicAbstract):
         # Check if the future has an exception
         [is_success,incoming_message] = x.result()
         logger.info(f'Settle message: {incoming_message.message_id}')
-        # with self.thread_lock:
-            # current_message = self.internal_message_dict.pop(incoming_message.message_id, None)
-        # if current_message is None:
-        current_message = incoming_message
-        message_id = current_message.message_id
-            # logger.info(f'No message found internally')
-        # else:
-            # logger.info(f'Popped message from internal dictionary: {current_message.message_id}')
-            # logger.info(f'{current_message.locked_until_utc} -- {incoming_message.locked_until_utc}')
-            # logger.info(f'{current_message.delivery_count} -- {incoming_message.delivery_count}')
 
-        try:
-            if is_success:
-                self.receiver.complete_message(current_message)
-            else:
-                print(f'Abandoning message: {current_message}')
-                self.receiver.abandon_message(current_message) # send back to the topic
-        except ServiceBusError as e:
-            logger.error(f'Error in settling message: {e}')
-            print(f'Locked until {current_message.locked_until_utc}')
-            # self.try_settle_again(current_message, is_success)
-            if self._settle_fail:
-                logger.info(f'Calling settle fail function')
-                self._settle_fail(message_id)
-            # if message is MessageLockLostError, then renew the lock and try again.
-        except Exception as e:
-            logger.error(f'Error in settling message: {e}')
-            # if message is MessageLockLostError, then renew the lock and try again.
+        # try:
+        #     if is_success:
+        #         self.receiver.complete_message(incoming_message)
+        #     else:
+        #         print(f'Abandoning message: {incoming_message}')
+        #         self.receiver.abandon_message(incoming_message) # send back to the topic
+        # except ServiceBusError as e:
+        #     logger.error(f'Error in settling message: {e}')
+        #     print(f'Locked until {incoming_message.locked_until_utc}')
+        #     # self.try_settle_again(current_message, is_success)
+        #     if self._settle_fail:
+        #         logger.info(f'Calling settle fail function')
+        #         self._settle_fail(message_id)
+        #     # if message is MessageLockLostError, then renew the lock and try again.
+        # except Exception as e:
+        #     logger.error(f'Error in settling message: {e}')
+        #     # if message is MessageLockLostError, then renew the lock and try again.
             
         return  
     
