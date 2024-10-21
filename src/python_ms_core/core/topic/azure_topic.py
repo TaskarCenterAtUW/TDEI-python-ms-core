@@ -97,7 +97,7 @@ class AzureTopic(TopicAbstract):
                             logger.info(f'Message ID {message.message_id}')
 
                             # if existing_message is None:
-                            self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
+                            # self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration, on_lock_renew_failure=self.on_renew_error)
                             execution_task = self.executor.submit(self.internal_callback, message, callback)
                             execution_task.add_done_callback(lambda x: self.settle_message(x))
                     else:
@@ -130,7 +130,7 @@ class AzureTopic(TopicAbstract):
             # Settle message here itself
             self.receiver.complete_message(message)
             
-            callbackfn(queue_message,message.message_id)
+            callbackfn(queue_message)
             return [True,message]
         except Exception as e:
             logger.error(f'Error in processing message: {e}')
@@ -170,6 +170,7 @@ class AzureTopic(TopicAbstract):
             
         return  
     
+    # Method not in use
     def try_settle_again(self,message:ServiceBusReceivedMessage,complete:bool= True):
         logger.warning(f'Trying to settle message again: {message.message_id}')
         try:
