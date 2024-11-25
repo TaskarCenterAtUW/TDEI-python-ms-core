@@ -1,40 +1,35 @@
+import os
 import unittest
 from unittest.mock import patch
-import os
+from src.python_ms_core.core.storage.models.config import CoreConfig
 
-
-class CoreConfig:
-    def __init__(self):
-        self.provider = os.environ.get('PROVIDER', 'Azure')
-
-    @staticmethod
-    def default():
-        return CoreConfig()
 
 
 class TestCoreConfig(unittest.TestCase):
-    @patch('os.environ.get')
-    def test_init_with_default_provider(self, mock_env_get):
-        # Test case for initializing CoreConfig with default provider
-        mock_env_get.return_value = 'Azure'
-        config = CoreConfig()
-        self.assertEqual(config.provider, 'Azure')
 
-    @patch('os.environ.get')
-    def test_init_with_custom_provider(self, mock_env_get):
-        # Test case for initializing CoreConfig with custom provider
-        custom_provider = 'AWS'
-        mock_env_get.return_value = custom_provider
+    @patch.dict(os.environ, {'PROVIDER': 'AWS'})  # Mocking the environment variable
+    def test_provider_set_from_env(self):
+        # Initialize CoreConfig with mocked PROVIDER environment variable
         config = CoreConfig()
-        self.assertEqual(config.provider, custom_provider)
 
-    @patch('os.environ.get')
-    def test_default_method(self, mock_env_get):
-        # Test case for default method of CoreConfig
-        mock_env_get.return_value = 'Azure'
+        # Assertions
+        self.assertEqual(config.provider, 'AWS', "Expected provider to be 'AWS' based on environment variable.")
+
+    @patch.dict(os.environ, {})  # Mocking the environment without PROVIDER
+    def test_provider_default_to_azure(self):
+        # Initialize CoreConfig with no PROVIDER environment variable
+        config = CoreConfig()
+
+        # Assertions
+        self.assertEqual(config.provider, 'Azure', "Expected provider to default to 'Azure' when not set.")
+
+    def test_default_method_returns_core_config(self):
+        # Test that the default method returns an instance of CoreConfig
         config = CoreConfig.default()
-        self.assertIsInstance(config, CoreConfig)
-        self.assertEqual(config.provider, 'Azure')
+
+        # Assertions
+        self.assertIsInstance(config, CoreConfig, "Expected CoreConfig.default() to return an instance of CoreConfig.")
+        self.assertEqual(config.provider, 'Azure', "Expected default provider to be 'Azure'.")
 
 
 if __name__ == "__main__":

@@ -65,6 +65,21 @@ class TestLocalFileEntity(unittest.TestCase):
         result = file_entity.get_remote_url()
         self.assertEqual(result, 'http://example.com/files/upload/test_path/test_file.txt')
 
+    def test_delete_file_path_construction(self):
+        file_entity = LocalFileEntity('test_file.txt', 'test_path', config=MockConfig())
+        file_entity.delete_file()
+
+        file_entity.download_path = '/download/'
+        file_entity.path = 'file-to-delete.txt'
+
+
+        # Construct the expected path based on the mock values
+        expected_path = "http://example.com/download/file-to-delete.txt"
+
+        # Verify that the delete_relative_path is constructed correctly
+        delete_relative_path = f'{MockConfig().connection_string}{file_entity.download_path}{file_entity.path}'
+        self.assertEqual(delete_relative_path, expected_path)
+
 
 if __name__ == '__main__':
     unittest.main()

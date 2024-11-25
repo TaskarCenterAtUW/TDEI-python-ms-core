@@ -71,6 +71,21 @@ class TestAzureFileEntity(unittest.TestCase):
         # Assert the result
         self.assertEqual(result, 'http://example.com/file')
 
+    def test_delete_file(self):
+        # Create an instance of the AzureFileEntity
+        file_entity = AzureFileEntity(self.name, self.blob_client)
+
+        # Mock the delete_blob method of blob_client
+        mock_delete_blob = MagicMock()
+        self.blob_client.delete_blob = mock_delete_blob
+
+        # Call the delete_file method
+        file_entity.delete_file()
+
+        # Assertions
+        mock_delete_blob.assert_called_once()
+        self.blob_client.delete_blob.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()
