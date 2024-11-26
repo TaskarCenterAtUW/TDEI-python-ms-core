@@ -1,5 +1,10 @@
 # Change log
 
+# Version 0.0.23
+- Updated unit test cases pipeline
+- Added support to upload test cases results on Azure blob
+
+
 # Version 0.0.21
 ### New Features and Enhancements
 - **Message Lock Renewal:** Implemented a mechanism to automatically renew message locks during processing. This ensures that messages remain active and are not returned to the queue for reprocessing while they are being handled.  
