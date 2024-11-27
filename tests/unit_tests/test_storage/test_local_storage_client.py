@@ -21,6 +21,17 @@ class MockFileEntity:
         self.name = name
         self.path = path
         self.config = config
+        self.uploaded = False
+
+    def get_remote_url(self):
+        return f'http://example.com/{self.path}'
+
+    def get_stream(self):
+        # Return a mock stream
+        return "mock_stream"
+
+    def upload(self, stream):
+        self.uploaded = True
 
 
 class MockStorageContainer:
@@ -70,6 +81,40 @@ class TestLocalStorageClient(unittest.TestCase):
         self.assertIsInstance(result, MockFileEntity)
         self.assertEqual(result.name, 'uploadFile')
         self.assertEqual(result.path, f'{container_name}/file2')
+
+    def test_get_sas_url(self):
+        container_name = 'test_container'
+        file_path = 'test_file.txt'
+
+        # Mock the get_file_from_url method to return a mock file
+        self.client.get_file_from_url = MagicMock(
+            return_value=MockFileEntity('uploadFile', f'{container_name}/{file_path}', config=self.config))
+
+        # Call the method
+        sas_url = self.client.get_sas_url(container_name, file_path, expiry_hours=24)
+
+        # Assertions
+        self.assertEqual(sas_url, 'http://example.com/test_container/test_file.txt',
+                         "Expected SAS URL to match the mock remote URL")
+
+    def test_clone_file(self):
+        file_url = 'http://example.com/files/upload/test_container/file2'
+        destination_container_name = 'destination_container'
+        destination_file_path = 'file2_clone'
+
+        # Mock the get_file_from_url method to return a mock file
+        self.client.get_file_from_url = MagicMock(
+            return_value=MockFileEntity('uploadFile', 'test_container/file2', config=self.config))
+
+        # Call the method
+        cloned_file = self.client.clone_file(file_url, destination_container_name, destination_file_path)
+
+        # Assertions
+        # Ensure that the file's upload method was called
+        self.assertTrue(cloned_file.uploaded, "Expected the file to be uploaded")
+
+        # Verify that the cloned file name is updated correctly
+        self.assertEqual(cloned_file.name, destination_file_path, "Expected cloned file name to be updated")
 
 
 if __name__ == '__main__':

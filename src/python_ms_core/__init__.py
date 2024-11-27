@@ -23,7 +23,7 @@ class Core:
         if config is not None:
             if config.upper() == LOCAL_ENV:
                 self.config = LocalConfig()
-            elif config.upper() == LOCAL_ENV:
+            elif config.upper() == AZURE_ENV:
                 self.config = CoreConfig()
                 self.__check_health()
             else:

@@ -29,7 +29,7 @@ class PermissionRequest:
 
     @project_group_id.setter
     def project_group_id(self, value):
-        self.project_group_id = value
+        self._project_group_id = value
 
     @property
     def permissions(self):
