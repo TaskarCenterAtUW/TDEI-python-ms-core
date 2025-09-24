@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
-from azure.storage.blob import BlobClient
+from azure.core.exceptions import ResourceExistsError
+from src.python_ms_core.core.resource_errors.errors import UnProcessableError
 from src.python_ms_core.core.storage.providers.azure.azure_file_entity import AzureFileEntity
 
 
@@ -41,7 +42,7 @@ class TestAzureFileEntity(unittest.TestCase):
         self.assertEqual(result, 'Test content')
         self.blob_client.download_blob.assert_called_once()
 
-    def test_upload(self):
+    def test_upload_without_overwrite(self):
         # Create an instance of the AzureFileEntity
         file_entity = AzureFileEntity(self.name, self.blob_client)
 
@@ -56,9 +57,34 @@ class TestAzureFileEntity(unittest.TestCase):
 
         # Assert the result
         self.assertEqual(file_entity._get_remote_url, 'http://example.com/file')
+        self.blob_client.upload_blob.assert_called_once_with(file_entity.file_path, upload_stream, overwrite=False)
+
+    def test_upload_with_overwrite_true(self):
+        file_entity = AzureFileEntity(self.name, self.blob_client)
+
+        mock_upload_blob = MagicMock()
+        mock_upload_blob.url = 'http://example.com/file'
+        self.blob_client.upload_blob.return_value = mock_upload_blob
+
+        upload_stream = b'Test content'
+        file_entity.upload(upload_stream, overwrite=True)
+
+        self.assertEqual(file_entity._get_remote_url, 'http://example.com/file')
         self.blob_client.upload_blob.assert_called_once_with(
             file_entity.file_path, upload_stream, overwrite=True
         )
+
+    def test_upload_without_overwrite_raises_error_when_blob_exists(self):
+        file_entity = AzureFileEntity(self.name, self.blob_client)
+        self.blob_client.upload_blob.side_effect = ResourceExistsError("already exists")
+
+        with self.assertRaises(UnProcessableError):
+            file_entity.upload(b'Test content')
+
+        self.blob_client.upload_blob.assert_called_once_with(
+            file_entity.file_path, b'Test content', overwrite=False
+        )
+        self.assertIsNone(file_entity._get_remote_url)
 
     def test_get_remote_url(self):
         # Create an instance of the AzureFileEntity
