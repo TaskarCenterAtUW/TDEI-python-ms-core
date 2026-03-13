@@ -32,7 +32,7 @@ class LocalTopic(TopicAbstract):
         self.channel.exchange_declare(exchange=self.topic, exchange_type='fanout')
 
     @ExceptionHandler.decorated
-    def subscribe(self, subscription=None, callback=None):
+    def subscribe(self, subscription=None, callback=None, max_receivable_messages=-1):
 
         if subscription is not None:
             if self.connection.is_open:

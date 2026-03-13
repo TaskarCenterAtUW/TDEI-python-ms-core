@@ -16,7 +16,7 @@ print(f'Core version: {Core.__version__}')
 topic = 'temp-nar'
 subscription = 'temp'
 some_other_sub = 'temp'
-respond_topic = 'temp-response'
+respond_topic = 'test-response'
 # respond_topic_object = core.get_topic(topic_name=respond_topic)
 
 
@@ -45,10 +45,11 @@ exec_count = 0
 def long_running_task(sleep_time):
     # Simulate a long-running task
     global exec_count
-    exec_count += 1 
-    if exec_count % random_exec == 0:
-        # throw an exception
-        raise Exception('Random Exception')
+    exec_count += 1
+    # Throw exceptions at random 
+    # if exec_count % random_exec == 0:
+    #     # throw an exception
+    #     raise Exception('Random Exception')
     time.sleep(sleep_time)
     sender_obj = MessageSender(topic_name=respond_topic)
     sender_obj.send_message({'message': 'Task Completed'})
@@ -61,12 +62,13 @@ def subscribe(topic_name, subscription_name):
         # long_running_thread = threading.Thread(target=long_running_task, args=(message.data['a'],))
         # long_running_thread.start()
         # long_running_thread.join()
-        long_running_task(message.data['a'])
+        # long_running_task(message.data['a'])
+        long_running_task(5) # 5 seconds for each task
         print(f' > Message Completed: {message.data}')
 
-    topic_object = core.get_topic(topic_name=topic_name,max_concurrent_messages=2)
+    topic_object = core.get_topic(topic_name=topic_name,max_concurrent_messages=1)
     try:
-        topic_object.subscribe(subscription=subscription_name, callback=process)
+        topic_object.subscribe(subscription=subscription_name, callback=process, max_receivable_messages=1)
     except Exception as e:
         print(e)
 

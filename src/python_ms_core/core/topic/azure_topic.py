@@ -66,7 +66,7 @@ class AzureTopic(TopicAbstract):
         message = QueueMessage.to_dict(data)
         self.publisher.send_messages(ServiceBusMessage(json.dumps(message)))
 
-    def subscribe(self, subscription: str, callback):
+    def subscribe(self, subscription: str, callback, max_receivable_messages=-1):
 
         """
         Subscribes to a subscription of the topic and processes incoming messages.
@@ -75,17 +75,24 @@ class AzureTopic(TopicAbstract):
             callback (function): The callback function to invoke for each message.
         """
         self.receiver = self.client.get_subscription_receiver(topic_name=self.topic_name, subscription_name=subscription)
+        self.receiver.local_received_messages = 0
         while True:
                 try:
                     to_receive = (self.max_concurrent_messages - self.internal_count)
+                    total_messages_to_recieve_more = max_receivable_messages - self.receiver.local_received_messages
+                    if max_receivable_messages > 0:
+                        to_receive = min(to_receive, total_messages_to_recieve_more)
                     if to_receive > 0:
                         messages = self.receiver.receive_messages(max_message_count=to_receive, max_wait_time=self.wait_time_for_message)
                         if not messages or len(messages) == 0:
                             continue
+                        self.receiver.local_received_messages += len(messages)
                         for message in messages: 
                             self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration)
                             execution_task = self.executor.submit(self.internal_callback, message, callback)
                             execution_task.add_done_callback(lambda x: self.settle_message(x))
+                        if self.receiver.local_received_messages >= max_receivable_messages and max_receivable_messages > 0: # Break if the messages are more than max_receivable_messages
+                            break
                     else:
                         time.sleep(self.wait_time_for_message)
                 except Exception as e:
