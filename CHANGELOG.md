@@ -1,5 +1,9 @@
 # Change log
 
+# Version 0.0.24
+- Updated unit test cases pipeline
+- Added support to override uploaded blob access tier
+
 # Version 0.0.23
 - Updated unit test cases pipeline
 - Added support to upload test cases results on Azure blob

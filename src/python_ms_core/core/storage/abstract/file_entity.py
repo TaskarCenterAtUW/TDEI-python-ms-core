@@ -20,7 +20,7 @@ class FileEntity(ABC):
         pass
 
     @abstractmethod
-    def upload(self, upload_stream):
+    def upload(self, upload_stream, overwrite=False):
         pass
 
     @abstractmethod

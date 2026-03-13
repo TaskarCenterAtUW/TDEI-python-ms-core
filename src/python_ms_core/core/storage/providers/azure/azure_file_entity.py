@@ -20,8 +20,10 @@ class AzureFileEntity(file_entity.FileEntity):
         return self.blob_client.download_blob().content_as_text()
 
     @ExceptionHandler.decorated
-    def upload(self, upload_stream):
-        upload_file = self.blob_client.upload_blob(self.file_path, upload_stream)
+    def upload(self, upload_stream, overwrite=False):
+        upload_file = self.blob_client.upload_blob(
+            self.file_path, upload_stream, overwrite=overwrite
+        )
         self._get_remote_url = upload_file.url
 
     @ExceptionHandler.decorated

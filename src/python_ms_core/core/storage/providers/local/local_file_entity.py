@@ -25,7 +25,7 @@ class LocalFileEntity(FileEntity):
         return StringIO(self.get_stream()).read()
 
     @ExceptionHandler.decorated
-    def upload(self, upload_stream):
+    def upload(self, upload_stream, overwrite=False):
         upload_path = f'{self.path}/{self.name}'
         upload_relative_path = f'{self.config.connection_string}{self.upload_path}{upload_path}'
         requests.post(upload_relative_path, files={'uploadFile': upload_stream})
