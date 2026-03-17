@@ -54,6 +54,7 @@ class AzureTopic(TopicAbstract):
         self.max_renewal_duration = 86400 # Renew the message upto 1 day
         self.wait_time_for_message = 5
         self.thread_lock = threading.Lock()
+        self.pending_tasks = []
     
     
     def publish(self, data: QueueMessage):
@@ -78,23 +79,36 @@ class AzureTopic(TopicAbstract):
         self.receiver.local_received_messages = 0
         while True:
                 try:
-                    to_receive = (self.max_concurrent_messages - self.internal_count)
-                    total_messages_to_recieve_more = max_receivable_messages - self.receiver.local_received_messages
-                    if max_receivable_messages > 0:
-                        to_receive = min(to_receive, total_messages_to_recieve_more)
+                    self._settle_completed_tasks()
+                    to_receive = self._get_receivable_count(max_receivable_messages=max_receivable_messages)
+                    if max_receivable_messages > 0 and self.receiver.local_received_messages >= max_receivable_messages:
+                        if len(self.pending_tasks) == 0:
+                            break
+                        self._wait_for_pending_tasks(timeout=0.5)
+                        continue
                     if to_receive > 0:
                         messages = self.receiver.receive_messages(max_message_count=to_receive, max_wait_time=self.wait_time_for_message)
                         if not messages or len(messages) == 0:
+                            if len(self.pending_tasks) > 0:
+                                self._wait_for_pending_tasks(timeout=0.5)
                             continue
                         self.receiver.local_received_messages += len(messages)
+                        with self.thread_lock:
+                            self.internal_count += len(messages)
                         for message in messages: 
-                            self.lock_renewal.register(self.receiver, message, max_lock_renewal_duration=self.max_renewal_duration)
+                            self.lock_renewal.register(
+                                self.receiver,
+                                message,
+                                max_lock_renewal_duration=self.max_renewal_duration,
+                                on_lock_renew_failure=self._handle_lock_renew_failure,
+                            )
                             execution_task = self.executor.submit(self.internal_callback, message, callback)
-                            execution_task.add_done_callback(lambda x: self.settle_message(x))
-                        if self.receiver.local_received_messages >= max_receivable_messages and max_receivable_messages > 0: # Break if the messages are more than max_receivable_messages
-                            break
+                            self.pending_tasks.append((execution_task, message))
                     else:
-                        time.sleep(self.wait_time_for_message)
+                        if len(self.pending_tasks) > 0:
+                            self._wait_for_pending_tasks(timeout=0.5)
+                        else:
+                            time.sleep(self.wait_time_for_message)
                 except Exception as e:
                     logger.error(f'Error in receiving messages: {e}')
 
@@ -109,8 +123,6 @@ class AzureTopic(TopicAbstract):
             ServiceBusMessage: The processed message.
         """
         try:
-            with self.thread_lock:
-                self.internal_count += 1 # thread safe.
             queue_message = QueueMessage.data_from(str(message))
             callbackfn(queue_message)
             return [True,message]
@@ -120,21 +132,58 @@ class AzureTopic(TopicAbstract):
                              
     
     def settle_message(self, x: cf.Future):
+        return self._settle_task(x)
+
+    def _get_receivable_count(self, max_receivable_messages=-1):
+        with self.thread_lock:
+            available_slots = self.max_concurrent_messages - self.internal_count
+        if max_receivable_messages > 0:
+            remaining_messages = max_receivable_messages - self.receiver.local_received_messages
+            available_slots = min(available_slots, remaining_messages)
+        return max(available_slots, 0)
+
+    def _wait_for_pending_tasks(self, timeout=0.5):
+        if len(self.pending_tasks) == 0:
+            return
+        futures = [future for future, _ in self.pending_tasks]
+        cf.wait(futures, timeout=timeout, return_when=cf.FIRST_COMPLETED)
+        self._settle_completed_tasks()
+
+    def _settle_completed_tasks(self):
+        remaining_tasks = []
+        for future, incoming_message in self.pending_tasks:
+            if future.done():
+                self._settle_task(future, incoming_message=incoming_message)
+            else:
+                remaining_tasks.append((future, incoming_message))
+        self.pending_tasks = remaining_tasks
+
+    def _settle_task(self, x: cf.Future, incoming_message=None):
         """
         Sets the message as completed and updates the internal count.
         Args:
             x (cf.Future): The future object representing the message processing.
         """
-        # Lock the internal count
-        with self.thread_lock:
-            self.internal_count -= 1
-        # Check if the future has an exception
-        [is_success,incoming_message] = x.result()
-        if is_success:
-            self.receiver.complete_message(incoming_message)
-        else:
-            print(f'Abandoning message: {incoming_message}')
-            self.receiver.abandon_message(incoming_message) # send back to the topic
-        return  
+        try:
+            [is_success, settled_message] = x.result()
+            if settled_message is not None:
+                incoming_message = settled_message
+            if incoming_message is None:
+                return
+            if is_success:
+                self.receiver.complete_message(incoming_message)
+            else:
+                logger.info(f'Abandoning message: {incoming_message}')
+                self.receiver.abandon_message(incoming_message) # send back to the topic
+        except Exception as e:
+            logger.error(f'Error in settling message: {e}')
+        finally:
+            with self.thread_lock:
+                self.internal_count = max(self.internal_count - 1, 0)
+        return
+
+    def _handle_lock_renew_failure(self, renewable, error):
+        message_id = getattr(renewable, 'message_id', None) or getattr(renewable, 'messageId', 'unknown')
+        logger.error(f'Error renewing lock for message {message_id}: {error}')
 
     

@@ -1,5 +1,11 @@
 # Change log
 
+# Version 0.0.25
+### Fixes
+- **Azure Topic Settlement Stability:** Moved Azure Service Bus message settlement back onto the receiver-owning loop instead of settling from worker callback threads. This keeps receive and complete/abandon operations on the same receiver flow for long-running jobs.
+- **Receiver Slot Tracking:** Reserved and released in-flight message slots on the receive loop so concurrency limits remain accurate while messages are still processing.
+- **Lock Renewal Diagnostics:** Added logging for Service Bus lock-renew failures to make long-running lock-loss issues visible before final settlement.
+
 # Version 0.0.23
 - Updated unit test cases pipeline
 - Added support to upload test cases results on Azure blob
