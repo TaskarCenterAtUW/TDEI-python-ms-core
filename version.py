@@ -1,4 +1,4 @@
-version = '0.2.5.1'
-lastCommit = '30e447b527d6744b5ce72e9460f21e22675a3126'
-lastCommitShort = '30e4'
-buildDate = '2026-03-17'
+version = '0.2.5.2'
+lastCommit = '7c4a4ad16d5e8825587366d91a17dd3b71598bb6'
+lastCommitShort = '7c4a'
+buildDate = '2026-03-18'
