@@ -1,5 +1,4 @@
 import json
-import gc
 import logging
 import multiprocessing as mp
 import os
@@ -13,15 +12,8 @@ from azure.servicebus import ServiceBusClient, ServiceBusMessage
 from azure.servicebus import AutoLockRenewer
 import threading
 
-try:
-    import psutil
-except ImportError:  # pragma: no cover - dependency exists in the package, but keep logging resilient.
-    psutil = None
 
-
-logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger('AzureTopic')
-logger.setLevel(logging.INFO)
 
 
 """
@@ -59,14 +51,8 @@ class AzureTopic(TopicAbstract):
         self.callback_process_start_method = self._get_process_start_method()
         self.process_context = self._get_process_context()
         self.internal_count = 0
-        self.max_renewal_duration = self._get_positive_int_from_env(
-            'TOPIC_MAX_LOCK_RENEWAL_DURATION_SECONDS',
-            86400,
-        )  # Renew the message upto 1 day
-        self.lock_renewal_margin = self._get_positive_int_from_env(
-            'TOPIC_LOCK_RENEWAL_MARGIN_SECONDS',
-            60,
-        )
+        self.max_renewal_duration = 86400  # Renew the message upto 1 day
+        self.lock_renewal_margin = 60
         renewer_max_workers = max(max_concurrent_messages, 2)
         self.lock_renewal = AutoLockRenewer(
             max_lock_renewal_duration=self.max_renewal_duration,
@@ -76,22 +62,9 @@ class AzureTopic(TopicAbstract):
         # The SDK default renews only in the last 10 seconds of the lock window.
         # Start earlier so long-running jobs have more headroom for scheduler jitter.
         self.lock_renewal._renew_period = min(self.lock_renewal_margin, self.max_renewal_duration)
-        self.lock_renew_receiver = _LockRenewLoggingReceiver(self)
         self.wait_time_for_message = 5
         self.thread_lock = threading.Lock()
         self.pending_tasks = []
-        self._process = None
-        self._prime_runtime_samplers()
-        logger.info(
-            'Configured AzureTopic %s: execution_mode=%s, process_start_method=%s, '
-            'max_lock_renewal_duration=%s seconds, renew_margin=%s seconds, renewer_max_workers=%s',
-            self.topic_name,
-            self.callback_execution_mode,
-            self.callback_process_start_method,
-            self.max_renewal_duration,
-            self.lock_renewal_margin,
-            renewer_max_workers,
-        )
     
     
     def publish(self, data: QueueMessage):
@@ -135,7 +108,7 @@ class AzureTopic(TopicAbstract):
                         for message in messages: 
                             execution_task = self._submit_processing_task(message, callback)
                             self.lock_renewal.register(
-                                self.lock_renew_receiver,
+                                self.receiver,
                                 message,
                                 max_lock_renewal_duration=self.max_renewal_duration,
                                 on_lock_renew_failure=self._handle_lock_renew_failure,
@@ -283,87 +256,12 @@ class AzureTopic(TopicAbstract):
         failure_reason = error or getattr(renewable, 'auto_renew_error', None) or 'lock expired before renewal could complete'
         logger.error(
             f'Error renewing lock for message {message_id}: {failure_reason}; '
-            f'locked_until_utc={getattr(renewable, "locked_until_utc", None)}; '
-            f'runtime_snapshot={self._get_runtime_snapshot()}'
+            f'locked_until_utc={getattr(renewable, "locked_until_utc", None)}'
         )
 
     @staticmethod
     def _get_message_id(message):
         return getattr(message, 'message_id', None) or getattr(message, 'messageId', 'unknown')
-
-    def _prime_runtime_samplers(self):
-        if psutil is None:
-            return
-        try:
-            self._process = psutil.Process(os.getpid())
-            self._process.cpu_percent(interval=None)
-            psutil.cpu_percent(interval=None)
-        except Exception:  # pragma: no cover - best effort diagnostics
-            self._process = None
-
-    def _get_runtime_snapshot(self):
-        return f'{self._get_memory_snapshot()}, {self._get_cpu_snapshot()}, {self._get_gc_snapshot()}'
-
-    def _get_memory_snapshot(self):
-        if self._process is None:
-            return 'memory=psutil-unavailable'
-        try:
-            memory_info = self._process.memory_info()
-            rss_mb = memory_info.rss / (1024 * 1024)
-            vms_mb = memory_info.vms / (1024 * 1024)
-            return f'memory=rss_mb={rss_mb:.2f}, vms_mb={vms_mb:.2f}, num_threads={self._process.num_threads()}'
-        except Exception as exc:  # pragma: no cover - diagnostic fallback
-            return f'memory=unavailable({exc})'
-
-    def _get_cpu_snapshot(self):
-        if self._process is None:
-            return 'cpu=psutil-unavailable'
-        try:
-            process_cpu_percent = self._process.cpu_percent(interval=None)
-            system_cpu_percent = psutil.cpu_percent(interval=None)
-            return (
-                f'cpu=process_percent={process_cpu_percent:.2f}, '
-                f'system_percent={system_cpu_percent:.2f}'
-            )
-        except Exception as exc:  # pragma: no cover - diagnostic fallback
-            return f'cpu=unavailable({exc})'
-
-    @staticmethod
-    def _get_gc_snapshot():
-        try:
-            gc_counts = gc.get_count()
-            gc_thresholds = gc.get_threshold()
-            gc_stats = gc.get_stats()
-            generation_summaries = []
-            for generation, stats in enumerate(gc_stats):
-                generation_summaries.append(
-                    'gen{generation}[collections={collections}, collected={collected}, uncollectable={uncollectable}]'.format(
-                        generation=generation,
-                        collections=stats.get('collections', 0),
-                        collected=stats.get('collected', 0),
-                        uncollectable=stats.get('uncollectable', 0),
-                    )
-                )
-            return (
-                f'gc=enabled={gc.isenabled()}, counts={gc_counts}, thresholds={gc_thresholds}, '
-                f'stats={"; ".join(generation_summaries)}'
-            )
-        except Exception as exc:  # pragma: no cover - diagnostic fallback
-            return f'gc=unavailable({exc})'
-
-    @staticmethod
-    def _get_positive_int_from_env(name, default):
-        value = os.environ.get(name)
-        if value is None:
-            return default
-        try:
-            parsed = int(value)
-            if parsed > 0:
-                return parsed
-        except (TypeError, ValueError):
-            pass
-        logger.warning(f'Invalid value for {name}: {value}. Using default {default}.')
-        return default
 
     @staticmethod
     def _get_callback_execution_mode():
@@ -404,19 +302,6 @@ class AzureTopic(TopicAbstract):
             )
             self.callback_execution_mode = 'thread'
             return None
-
-class _LockRenewLoggingReceiver:
-    def __init__(self, topic):
-        self._topic = topic
-
-    def renew_message_lock(self, renewable):
-        logger.info(
-            'Attempting lock renewal for message %s; locked_until_utc=%s; runtime_snapshot=%s',
-            self._topic._get_message_id(renewable),
-            getattr(renewable, 'locked_until_utc', None),
-            self._topic._get_runtime_snapshot(),
-        )
-        return self._topic.receiver.renew_message_lock(renewable)
 
 
 def _run_callback_in_subprocess(message_payload, callbackfn, result_connection):

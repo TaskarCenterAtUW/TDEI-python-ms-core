@@ -163,7 +163,7 @@ class TestAzureTopic(unittest.TestCase):
 
         topic._submit_processing_task.assert_called_once_with(mock_message, callback)
         mock_auto_lock_renewer.return_value.register.assert_called_once_with(
-            topic.lock_renew_receiver,
+            mock_receiver,
             mock_message,
             max_lock_renewal_duration=topic.max_renewal_duration,
             on_lock_renew_failure=topic._handle_lock_renew_failure,
@@ -369,74 +369,13 @@ class TestAzureTopic(unittest.TestCase):
         mock_message.auto_renew_error = None
 
         topic = AzureTopic(config=mock_config, topic_name='mock-topic', max_concurrent_messages=1)
-        topic._get_runtime_snapshot = MagicMock(
-            return_value=(
-                'memory=rss_mb=128.00, vms_mb=256.00, num_threads=4, '
-                'cpu=process_percent=80.00, system_percent=91.00, '
-                'gc=enabled=True, counts=(1, 2, 3), thresholds=(700, 10, 10), '
-                'stats=gen0[collections=1, collected=2, uncollectable=0]'
-            )
-        )
 
         topic._handle_lock_renew_failure(mock_message, None)
 
         mock_logger.error.assert_called_once_with(
             'Error renewing lock for message message-1: lock expired before renewal could complete; '
-            'locked_until_utc=2026-03-17T09:39:28Z; '
-            'runtime_snapshot=memory=rss_mb=128.00, vms_mb=256.00, num_threads=4, '
-            'cpu=process_percent=80.00, system_percent=91.00, '
-            'gc=enabled=True, counts=(1, 2, 3), thresholds=(700, 10, 10), '
-            'stats=gen0[collections=1, collected=2, uncollectable=0]'
+            'locked_until_utc=2026-03-17T09:39:28Z'
         )
-
-    @patch.dict(os.environ, {}, clear=True)
-    @patch('src.python_ms_core.core.topic.azure_topic.logger')
-    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_context')
-    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_all_start_methods', return_value=['fork', 'spawn'])
-    @patch('src.python_ms_core.core.topic.azure_topic.AutoLockRenewer')
-    @patch('src.python_ms_core.core.topic.azure_topic.ServiceBusClient')
-    def test_lock_renew_attempt_logs_memory_snapshot(
-        self,
-        mock_service_bus_client,
-        mock_auto_lock_renewer,
-        mock_get_all_start_methods,
-        mock_get_context,
-        mock_logger,
-    ):
-        mock_client = MagicMock()
-        mock_config = MagicMock(connection_string='Endpoint=sb://test/')
-        mock_service_bus_client.from_connection_string.return_value = mock_client
-        mock_client.get_topic_sender.return_value = MagicMock()
-        mock_auto_lock_renewer.return_value = MagicMock()
-        mock_get_context.return_value = MagicMock()
-
-        topic = AzureTopic(config=mock_config, topic_name='mock-topic', max_concurrent_messages=1)
-        topic._get_runtime_snapshot = MagicMock(
-            return_value=(
-                'memory=rss_mb=64.00, vms_mb=128.00, num_threads=3, '
-                'cpu=process_percent=55.00, system_percent=70.00, '
-                'gc=enabled=True, counts=(4, 5, 6), thresholds=(700, 10, 10), '
-                'stats=gen0[collections=3, collected=10, uncollectable=0]'
-            )
-        )
-
-        mock_message = MagicMock()
-        mock_message.message_id = 'message-2'
-        mock_message.locked_until_utc = '2026-03-17T09:39:33Z'
-        topic.receiver = MagicMock()
-
-        topic.lock_renew_receiver.renew_message_lock(mock_message)
-
-        mock_logger.info.assert_any_call(
-            'Attempting lock renewal for message %s; locked_until_utc=%s; runtime_snapshot=%s',
-            'message-2',
-            '2026-03-17T09:39:33Z',
-            'memory=rss_mb=64.00, vms_mb=128.00, num_threads=3, '
-            'cpu=process_percent=55.00, system_percent=70.00, '
-            'gc=enabled=True, counts=(4, 5, 6), thresholds=(700, 10, 10), '
-            'stats=gen0[collections=3, collected=10, uncollectable=0]',
-        )
-        topic.receiver.renew_message_lock.assert_called_once_with(mock_message)
 
 
 if __name__ == '__main__':
