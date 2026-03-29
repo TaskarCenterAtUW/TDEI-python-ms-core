@@ -59,6 +59,8 @@ This file will have to be generated or shared offline as per the developer requi
 Offers helper classes to help log the information. It is also used to record the audit messages
 as well as the analytics information required.
 
+Note: Logger is not valid anymore. This at most only logs into the terminal but nothing more.
+
 Use `core.get_logger()`
 Eg.
 ```python
