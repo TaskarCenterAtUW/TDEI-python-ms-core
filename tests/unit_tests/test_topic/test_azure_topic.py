@@ -1,3 +1,4 @@
+import datetime
 import os
 import unittest
 from unittest.mock import MagicMock, patch
@@ -46,6 +47,7 @@ class TestAzureTopic(unittest.TestCase):
         topic = AzureTopic(config=mock_config, topic_name='mock-topic', max_concurrent_messages=1)
 
         self.assertEqual(topic.callback_execution_mode, 'process')
+        self.assertEqual(topic.callback_process_fallback_mode, 'thread')
         self.assertEqual(topic.callback_process_start_method, 'fork')
         self.assertIs(topic.process_context, mock_process_context)
         mock_auto_lock_renewer.assert_called_once()
@@ -87,7 +89,7 @@ class TestAzureTopic(unittest.TestCase):
         topic._submit_process_task.assert_called_once_with('{"message":"hello"}', mock_callback)
         topic._submit_thread_task.assert_not_called()
 
-    @patch.dict(os.environ, {}, clear=True)
+    @patch.dict(os.environ, {'TOPIC_CALLBACK_PROCESS_FALLBACK_MODE': 'thread'}, clear=True)
     @patch('src.python_ms_core.core.topic.azure_topic.logger')
     @patch('src.python_ms_core.core.topic.azure_topic.mp.get_context')
     @patch('src.python_ms_core.core.topic.azure_topic.mp.get_all_start_methods', return_value=['fork', 'spawn'])
@@ -128,6 +130,55 @@ class TestAzureTopic(unittest.TestCase):
         )
         self.assertEqual(warning_args[1], 'message-1')
         self.assertEqual(str(warning_args[2]), 'process boom')
+
+    @patch.dict(os.environ, {'TOPIC_CALLBACK_PROCESS_FALLBACK_MODE': 'error'}, clear=True)
+    @patch('src.python_ms_core.core.topic.azure_topic.logger')
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_context')
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_all_start_methods', return_value=['fork', 'spawn'])
+    @patch('src.python_ms_core.core.topic.azure_topic.AutoLockRenewer')
+    @patch('src.python_ms_core.core.topic.azure_topic.ServiceBusClient')
+    def test_submit_processing_task_returns_failure_when_process_fails_and_thread_fallback_disabled(
+        self,
+        mock_service_bus_client,
+        mock_auto_lock_renewer,
+        mock_get_all_start_methods,
+        mock_get_context,
+        mock_logger,
+    ):
+        mock_client = MagicMock()
+        mock_config = MagicMock(connection_string='Endpoint=sb://test/')
+        mock_message = MagicMock()
+        mock_callback = MagicMock()
+
+        mock_service_bus_client.from_connection_string.return_value = mock_client
+        mock_client.get_topic_sender.return_value = MagicMock()
+        mock_get_context.return_value = MagicMock()
+        mock_message.message_id = 'message-1'
+        mock_message.__str__.return_value = '{"message":"hello"}'
+
+        topic = AzureTopic(config=mock_config, topic_name='mock-topic', max_concurrent_messages=1)
+        topic._submit_process_task = MagicMock(side_effect=RuntimeError('process boom'))
+        topic._submit_thread_task = MagicMock(return_value='thread-task')
+
+        task = topic._submit_processing_task(mock_message, mock_callback)
+
+        self.assertTrue(task.done())
+        self.assertEqual(
+            task.result(),
+            {
+                'success': False,
+                'error': 'Process execution failed and thread fallback is disabled: process boom',
+            },
+        )
+        topic._submit_thread_task.assert_not_called()
+        mock_logger.error.assert_called_once()
+        error_args = mock_logger.error.call_args[0]
+        self.assertEqual(
+            error_args[0],
+            'Process execution failed for message %s and thread fallback is disabled: %s',
+        )
+        self.assertEqual(error_args[1], 'message-1')
+        self.assertEqual(str(error_args[2]), 'process boom')
 
     @patch.dict(os.environ, {}, clear=True)
     @patch('src.python_ms_core.core.topic.azure_topic.mp.get_context')
@@ -342,6 +393,169 @@ class TestAzureTopic(unittest.TestCase):
             '2026-03-17T09:39:28Z. auto_renew_error=None'
         )
         self.assertEqual(topic.internal_count, 0)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch('src.python_ms_core.core.topic.azure_topic.logger')
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_context')
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_all_start_methods', return_value=['fork', 'spawn'])
+    @patch('src.python_ms_core.core.topic.azure_topic.AutoLockRenewer')
+    @patch('src.python_ms_core.core.topic.azure_topic.ServiceBusClient')
+    def test_handle_lock_renew_failure_cancels_running_inflight_task(
+        self,
+        mock_service_bus_client,
+        mock_auto_lock_renewer,
+        mock_get_all_start_methods,
+        mock_get_context,
+        mock_logger,
+    ):
+        mock_client = MagicMock()
+        mock_config = MagicMock(connection_string='Endpoint=sb://test/')
+        mock_message = MagicMock()
+        mock_task = MagicMock()
+
+        mock_service_bus_client.from_connection_string.return_value = mock_client
+        mock_client.get_topic_sender.return_value = MagicMock()
+        mock_get_context.return_value = MagicMock()
+        mock_message.message_id = 'message-1'
+        mock_message.locked_until_utc = '2026-03-17T09:39:28Z'
+        mock_message._lock_expired = True
+        mock_task.done.return_value = False
+        mock_task.cancel.return_value = True
+
+        topic = AzureTopic(config=mock_config, topic_name='mock-topic')
+        topic._track_inflight_task(mock_message, mock_task)
+
+        topic._handle_lock_renew_failure(mock_message, RuntimeError('renew failed'))
+
+        mock_task.cancel.assert_called_once_with('message lock expired after renewal failure: renew failed')
+        self.assertEqual(mock_logger.error.call_count, 2)
+        self.assertEqual(
+            mock_logger.error.call_args_list[1][0],
+            (
+                'Cancelled callback worker for message %s because %s',
+                'message-1',
+                'message lock expired after renewal failure: renew failed',
+            ),
+        )
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch('src.python_ms_core.core.topic.azure_topic.logger')
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_context')
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_all_start_methods', return_value=['fork', 'spawn'])
+    @patch('src.python_ms_core.core.topic.azure_topic.AutoLockRenewer')
+    @patch('src.python_ms_core.core.topic.azure_topic.ServiceBusClient')
+    def test_handle_lock_renew_failure_does_not_cancel_when_lock_is_still_active(
+        self,
+        mock_service_bus_client,
+        mock_auto_lock_renewer,
+        mock_get_all_start_methods,
+        mock_get_context,
+        mock_logger,
+    ):
+        mock_client = MagicMock()
+        mock_config = MagicMock(connection_string='Endpoint=sb://test/')
+        mock_message = MagicMock()
+        mock_task = MagicMock()
+
+        mock_service_bus_client.from_connection_string.return_value = mock_client
+        mock_client.get_topic_sender.return_value = MagicMock()
+        mock_get_context.return_value = MagicMock()
+        mock_message.message_id = 'message-1'
+        mock_message.locked_until_utc = '2026-03-17T09:39:28Z'
+        mock_message._lock_expired = False
+        mock_task.done.return_value = False
+
+        topic = AzureTopic(config=mock_config, topic_name='mock-topic')
+        topic._track_inflight_task(mock_message, mock_task)
+
+        topic._handle_lock_renew_failure(mock_message, RuntimeError('renew failed'))
+
+        mock_task.cancel.assert_not_called()
+        mock_logger.error.assert_called_once_with(
+            'Error renewing lock for message message-1: renew failed; '
+            'locked_until_utc=2026-03-17T09:39:28Z'
+        )
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch('src.python_ms_core.core.topic.azure_topic.logger')
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_context')
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_all_start_methods', return_value=['fork', 'spawn'])
+    @patch('src.python_ms_core.core.topic.azure_topic.AutoLockRenewer')
+    @patch('src.python_ms_core.core.topic.azure_topic.ServiceBusClient')
+    def test_renew_inflight_message_locks_renews_before_expiration(
+        self,
+        mock_service_bus_client,
+        mock_auto_lock_renewer,
+        mock_get_all_start_methods,
+        mock_get_context,
+        mock_logger,
+    ):
+        now = datetime.datetime.now(datetime.timezone.utc)
+        renewed_until = now + datetime.timedelta(seconds=45)
+        mock_client = MagicMock()
+        mock_receiver = MagicMock()
+        mock_config = MagicMock(connection_string='Endpoint=sb://test/')
+        mock_message = MagicMock()
+        mock_task = MagicMock()
+
+        mock_service_bus_client.from_connection_string.return_value = mock_client
+        mock_client.get_topic_sender.return_value = MagicMock()
+        mock_get_context.return_value = MagicMock()
+        mock_message.message_id = 'message-1'
+        mock_message._lock_expired = False
+        mock_message._received_timestamp_utc = now - datetime.timedelta(seconds=20)
+        mock_message.locked_until_utc = now + datetime.timedelta(seconds=10)
+        mock_task.done.return_value = False
+        mock_receiver.renew_message_lock.return_value = renewed_until
+
+        topic = AzureTopic(config=mock_config, topic_name='mock-topic')
+        topic.receiver = mock_receiver
+        topic._track_inflight_task(mock_message, mock_task)
+
+        topic._renew_inflight_message_locks()
+
+        mock_receiver.renew_message_lock.assert_called_once_with(mock_message)
+        mock_logger.info.assert_called_once_with(
+            'Renewed lock for message %s until %s',
+            'message-1',
+            renewed_until,
+        )
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_context')
+    @patch('src.python_ms_core.core.topic.azure_topic.mp.get_all_start_methods', return_value=['fork', 'spawn'])
+    @patch('src.python_ms_core.core.topic.azure_topic.AutoLockRenewer')
+    @patch('src.python_ms_core.core.topic.azure_topic.ServiceBusClient')
+    def test_settle_task_releases_inflight_task(
+        self,
+        mock_service_bus_client,
+        mock_auto_lock_renewer,
+        mock_get_all_start_methods,
+        mock_get_context,
+    ):
+        mock_client = MagicMock()
+        mock_receiver = MagicMock()
+        mock_message = MagicMock()
+        mock_config = MagicMock(connection_string='Endpoint=sb://test/')
+        mock_task = MagicMock()
+
+        mock_message._lock_expired = False
+        mock_service_bus_client.from_connection_string.return_value = mock_client
+        mock_client.get_topic_sender.return_value = MagicMock()
+        mock_client.get_subscription_receiver.return_value = mock_receiver
+        mock_get_context.return_value = MagicMock()
+
+        topic = AzureTopic(config=mock_config, topic_name='mock-topic')
+        topic.receiver = mock_receiver
+        topic.internal_count = 1
+        topic._track_inflight_task(mock_message, mock_task)
+
+        topic._settle_task(
+            CompletedTask({'success': True, 'error': None}),
+            incoming_message=mock_message,
+        )
+
+        self.assertNotIn(topic._get_message_key(mock_message), topic.inflight_tasks)
 
     @patch.dict(os.environ, {}, clear=True)
     @patch('src.python_ms_core.core.topic.azure_topic.logger')

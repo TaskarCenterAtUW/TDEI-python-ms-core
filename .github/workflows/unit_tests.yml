@@ -2,10 +2,12 @@ name: Unit Tests
 on:
   workflow_dispatch:
   push:
-    branches-ignore:
-      - '**'
+    branches: [ develop, main ]
   pull_request:
     branches: [ main, develop ]
+
+permissions:
+  contents: write
 
 jobs:
   UnitTest:
@@ -58,6 +60,36 @@ jobs:
       - name: Check coverage
         run: |
           coverage report --fail-under=85
+
+      - name: Generate coverage badge
+        run: |
+          pip install coverage-badge
+          mkdir -p badge-out
+          coverage-badge -f -o badge-out/coverage.svg
+
+      - name: Publish coverage badge to badges branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          cp badge-out/coverage.svg /tmp/coverage.svg
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin badges || true
+          if git show-ref --verify --quiet refs/remotes/origin/badges; then
+            git checkout badges
+          else
+            git checkout --orphan badges
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          cp /tmp/coverage.svg coverage.svg
+          git add coverage.svg
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update coverage badge"
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:badges
+          else
+            echo "No badge changes to commit."
+          fi
 
       - name: Upload report to Azure
         uses: LanceMcCarthy/Action-AzureBlobUpload@v2
