@@ -1,5 +1,8 @@
 # Core package for microservice
 
+[![python-ms-core](https://img.shields.io/pypi/v/python-ms-core?label=python-ms-core&cacheSeconds=60&t=1)](https://pypi.org/project/python-ms-core/)
+[![Unit Tests](https://github.com/TaskarCenterAtUW/TDEI-Python-ms-core/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/TaskarCenterAtUW/TDEI-Python-ms-core/actions/workflows/unit_tests.yml)
+![Coverage](https://raw.githubusercontent.com/TaskarCenterAtUW/TDEI-Python-ms-core/actions/badges/coverage.svg)
 
 ## System requirements
 | Software   | Version |

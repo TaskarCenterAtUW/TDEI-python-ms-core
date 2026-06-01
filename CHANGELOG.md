@@ -1,5 +1,12 @@
 # Change log
 
+# Version 0.0.26
+### Fixes
+- **Configurable Process Callback Fallback:** Process-mode topic callbacks keep the existing thread fallback by default for backward compatibility, but services can set `TOPIC_CALLBACK_PROCESS_FALLBACK_MODE=error` to prevent long-running CPU-bound work from silently falling back into the receiver/lock-renewal process.
+- **Lock Renewal Registration Timing:** Registers received messages with `AutoLockRenewer` before starting callback execution so renewal coverage begins before worker startup.
+- **Parent-Side Proactive Lock Renewal:** The receiver loop now proactively renews locks for in-flight messages before expiry, independent of callback execution, so long-running jobs do not rely only on SDK background renewal threads.
+- **Lock-Loss Worker Cancellation:** Cancels tracked callback workers only after the message lock is actually expired, preventing a long-running process worker from continuing after the message can become visible again.
+
 # Version 0.0.25
 ### Fixes
 - **Azure Topic Settlement Stability:** Moved Azure Service Bus message settlement back onto the receiver-owning loop instead of settling from worker callback threads. This keeps receive and complete/abandon operations on the same receiver flow for long-running jobs.
